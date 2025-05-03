@@ -11,8 +11,8 @@ public class CameraController : MonoBehaviour
     public Vector2 gridMin = new Vector2(-20f, -20f);  // Grid lower-left corner
     public Vector2 gridMax = new Vector2(20f, 20f);  // Grid upper-right corner
 
-    private Vector3 lastMousePosition;
-    private bool isDragging = false;
+    //private Vector3 lastMousePosition;
+    //private bool isDragging = false;
     private Camera cam;
 
     void Start()
@@ -24,17 +24,20 @@ public class CameraController : MonoBehaviour
     {
         HandleZoom();
         HandleKeyboardMovement();
-        HandleMouseDragging();
+        //HandleMouseDragging();
     }
 
     void HandleZoom()
     {
-        float scroll = Input.GetAxis("Mouse ScrollWheel");  
-        if (scroll != 0f)
+        if (Input.GetKey(KeyCode.LeftControl) || Input.GetKey(KeyCode.RightControl))
         {
-            cam.orthographicSize -= scroll * zoomSpeed;
-            cam.orthographicSize = Mathf.Clamp(cam.orthographicSize, minZoom, maxZoom);
-            transform.position = ClampPosition(transform.position);  // Reapply clamping after zooming
+            float scroll = Input.GetAxis("Mouse ScrollWheel");  
+            if (scroll != 0f)
+            {
+                cam.orthographicSize -= scroll * zoomSpeed;
+                cam.orthographicSize = Mathf.Clamp(cam.orthographicSize, minZoom, maxZoom);
+                transform.position = ClampPosition(transform.position);  // Reapply clamping after zooming
+        }
         }
     }
 
@@ -69,7 +72,7 @@ public class CameraController : MonoBehaviour
 
     }
 
-    void HandleMouseDragging()
+ /*   void HandleMouseDragging()
     {
         if (Input.GetMouseButtonDown(0))
         {
@@ -94,7 +97,7 @@ public class CameraController : MonoBehaviour
 
             lastMousePosition = Input.mousePosition;
         }
-    }
+    } */
 
     Vector3 ClampPosition(Vector3 position)
     {

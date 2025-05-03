@@ -29,6 +29,7 @@ public class FurnitureManager : MonoBehaviour
 
             foreach (GameObject prefab in loadedPrefabs)
             {
+                //Debug.Log("Loaded prefab: " + prefab.name);
                 // Try to find the matching thumbnail by name
                 Sprite matchingThumbnail = System.Array.Find(loadedThumbnails, thumb => thumb.name == prefab.name);
                 //if (matchingThumbnail != null)
@@ -49,6 +50,7 @@ public class FurnitureManager : MonoBehaviour
         }
 
         Debug.Log("Loaded " + allFurnitureItems.Count + " furniture items from Resources.");
+
     }
 
     public List<FurnitureItem> GetAllFurniture()

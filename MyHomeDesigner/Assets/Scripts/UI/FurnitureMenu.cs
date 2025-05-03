@@ -6,6 +6,8 @@ using TMPro;
 public class FurnitureMenu : MonoBehaviour
 {
     [Header("UI References")]
+    public Canvas canvas;
+    public Image dragPreviewImage;
     public Transform furnitureContentPanel;
     public GameObject furniturePanel; // Parent for furniture buttons
     public GameObject furnitureItemPrefab; // Prefab for each furniture item in UI
@@ -35,6 +37,15 @@ public class FurnitureMenu : MonoBehaviour
             newItem.transform.Find("Image").GetComponent<Image>().sprite = item.thumbnail;
             //Debug.Log(item.name + "\n");
             newItem.GetComponent<Button>().onClick.AddListener(() => OnFurnitureSelected(item));
+
+            FurnitureDragHandler dragHandler = newItem.GetComponent<FurnitureDragHandler>();
+            if (dragHandler != null)
+            {
+                dragHandler.furnitureItem = item;
+                dragHandler.canvas = canvas;
+                dragHandler.dragPreviewImage = dragPreviewImage;
+            }
+
 
             spawnedFurnitureUI.Add(newItem);
         }
