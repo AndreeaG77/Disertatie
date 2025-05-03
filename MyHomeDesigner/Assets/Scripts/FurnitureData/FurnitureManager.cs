@@ -69,7 +69,8 @@ public class FurnitureManager : MonoBehaviour
     public List<FurnitureItem> SearchFurniture(string searchText)
     {
         searchText = searchText.ToLower();
-        return allFurnitureItems.FindAll(item => item.name.ToLower().Contains(searchText));
+        Debug.Log("SearchFurniture called with: " + searchText);
+        return allFurnitureItems.FindAll(item => item.name.Trim().ToLower().StartsWith(searchText));
     }
 
     private PlacementType DeterminePlacementType(string category)

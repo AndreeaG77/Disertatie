@@ -60,7 +60,7 @@ public class FurnitureMenu : MonoBehaviour
 
     public void OnSearchValueChanged(string searchText)
     {
-        List<FurnitureItem> filteredItems = allFurnitureItems.FindAll(item => item.name.ToLower().Contains(searchText.ToLower()));
+        List<FurnitureItem> filteredItems = allFurnitureItems.FindAll(item => item.name.ToLower().StartsWith(searchText.ToLower()));
         DisplayFurnitureItems(filteredItems);
     }
 
