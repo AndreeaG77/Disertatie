@@ -38,7 +38,10 @@ public class FurnitureManager : MonoBehaviour
                 //    Debug.Log("Thumbnail set for prefab: " + prefab.name);
                 //}
                 // Create FurnitureData
-                FurnitureItem furnitureItem = new FurnitureItem(prefab.name, category, prefab, matchingThumbnail);
+                //FurnitureItem furnitureItem = new FurnitureItem(prefab.name, category, prefab, matchingThumbnail);
+                FurnitureItem furnitureItem = new FurnitureItem(prefab.name, category, prefab, matchingThumbnail, DeterminePlacementType(category)
+);
+
                 furnitureList.Add(furnitureItem);
                 allFurnitureItems.Add(furnitureItem);
             }
@@ -68,4 +71,19 @@ public class FurnitureManager : MonoBehaviour
         searchText = searchText.ToLower();
         return allFurnitureItems.FindAll(item => item.name.ToLower().Contains(searchText));
     }
+
+    private PlacementType DeterminePlacementType(string category)
+{
+    switch (category.ToLower())
+    {
+        case "rooms":
+            return PlacementType.Room;
+        case "windows":
+            return PlacementType.Window;
+        case "doors":
+            return PlacementType.Door;
+        default:
+            return PlacementType.Furniture;
+    }
+}
 }
