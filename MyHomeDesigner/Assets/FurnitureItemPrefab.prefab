@@ -354,6 +354,7 @@ MonoBehaviour:
     thumbnail: {fileID: 0}
   dragPreviewImage: {fileID: 0}
   canvas: {fileID: 0}
+  highlightMaterial: {fileID: 2100000, guid: 2e3236a9967815d45b8e92eae2f0622c, type: 2}
 --- !u!114 &948574475701869384
 MonoBehaviour:
   m_ObjectHideFlags: 0
