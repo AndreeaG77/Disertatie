@@ -338,9 +338,13 @@ public class FurnitureDragHandler : MonoBehaviour, IBeginDragHandler, IDragHandl
         }
 
         // 4. Instanțiem mobilierul
-        Instantiate(furnitureItem.prefab, worldPos, previewInstance.transform.rotation);
+        GameObject instance = Instantiate(furnitureItem.prefab, worldPos, previewInstance.transform.rotation);
         Destroy(previewInstance);
         if (highlightBox != null) Destroy(highlightBox);
+
+        //GameObject instance = Instantiate(furnitureItem.prefab, worldPos, previewInstance.transform.rotation);
+        instance.AddComponent<SelectableFurniture>();
+
     }
 
     private void PlaceDoor()

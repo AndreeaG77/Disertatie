@@ -2949,6 +2949,8 @@ GameObject:
   m_Component:
   - component: {fileID: 836140788}
   - component: {fileID: 836140787}
+  - component: {fileID: 836140789}
+  - component: {fileID: 836140790}
   m_Layer: 0
   m_Name: FurnitureManager
   m_TagString: Untagged
@@ -2983,6 +2985,33 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &836140789
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 836140786}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c15ee84c0a4c7c34bafb526b278f7ed9, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  toolPanelPrefab: {fileID: 1755334840805737514, guid: bc84b23e918221e4bb60e9b542f0bf7e, type: 3}
+  canvasParent: {fileID: 479049271}
+--- !u!114 &836140790
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 836140786}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: dbf6348ec5f4f0246a17d42402dacb8c, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  moveGizmoPrefab: {fileID: 3278199398590244485, guid: c29e1d0a92ea6984786240ddc3f9899a, type: 3}
 --- !u!1 &963194225
 GameObject:
   m_ObjectHideFlags: 0
