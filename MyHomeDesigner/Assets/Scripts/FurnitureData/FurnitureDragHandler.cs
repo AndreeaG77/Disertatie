@@ -304,7 +304,8 @@ public class FurnitureDragHandler : MonoBehaviour, IBeginDragHandler, IDragHandl
             return;
         }
 
-        Instantiate(furnitureItem.prefab, worldPos, previewInstance.transform.rotation);
+        GameObject roomInstance = Instantiate(furnitureItem.prefab, worldPos, previewInstance.transform.rotation);
+        RoomManager.Instance.RegisterRoom(roomInstance.transform);
         Destroy(previewInstance);
         if (highlightBox != null) Destroy(highlightBox);
     }
