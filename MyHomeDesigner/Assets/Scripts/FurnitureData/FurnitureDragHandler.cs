@@ -305,6 +305,10 @@ public class FurnitureDragHandler : MonoBehaviour, IBeginDragHandler, IDragHandl
         }
 
         GameObject roomInstance = Instantiate(furnitureItem.prefab, worldPos, previewInstance.transform.rotation);
+        Vector3 roomCenter = roomInstance.transform.position;
+        Vector3 viewPos = roomCenter + new Vector3(0, 1.7f, -1.5f); // sau ce funcționează bine
+
+        //RoomManager.Instance.RegisterRoom(roomInstance.transform, viewPos);
         RoomManager.Instance.RegisterRoom(roomInstance.transform);
         Destroy(previewInstance);
         if (highlightBox != null) Destroy(highlightBox);
