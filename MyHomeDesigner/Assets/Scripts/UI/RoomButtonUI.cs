@@ -90,6 +90,11 @@ public class RoomButtonUI : MonoBehaviour
     private IEnumerator MoveCameraSmooth(Transform cam, Vector3 targetPos, Quaternion targetRot, float duration)
     {
         Camera.main.orthographic = false;
+        //cam.fieldOfView = 60f;
+        Camera.main.GetComponent<CameraController>().enabled = false;
+        Camera.main.GetComponent<Camera3DController>().enabled = true;
+
+
         //Camera.main.fieldOfView = 60f; // poți ajusta dacă vrei unghi mai larg/strâns
 
         Vector3 startPos = cam.position;

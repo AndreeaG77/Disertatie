@@ -43,9 +43,12 @@ public class ViewToggle : MonoBehaviour
 
             Camera.main.orthographic = true;
             Camera.main.orthographicSize = 12.5f; // sau cât folosești tu în top-down
+            Camera.main.GetComponent<Camera3DController>().enabled = false;
+            Camera.main.GetComponent<CameraController>().enabled = true;
 
+            Cursor.lockState = CursorLockMode.None;
+            Cursor.visible = true;
 
-            cameraController.enabled = true;
             toggleButton.GetComponentInChildren<TMPro.TextMeshProUGUI>().text = "3D";
 
         }
