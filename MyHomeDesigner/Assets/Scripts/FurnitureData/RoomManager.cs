@@ -50,9 +50,6 @@ public class RoomManager : MonoBehaviour
 
         if (cameraSpawn != null)
         {
-            Debug.Log($"CameraSpawn găsit pentru {roomName} la {cameraSpawn.position}");
-
-            // Sferă vizuală în scenă
             GameObject marker = GameObject.CreatePrimitive(PrimitiveType.Sphere);
             marker.transform.position = cameraSpawn.position;
             marker.transform.localScale = Vector3.one * 0.3f;
@@ -66,7 +63,7 @@ public class RoomManager : MonoBehaviour
         
         Vector3 viewPosition = cameraSpawn != null 
             ? cameraSpawn.position 
-            : roomTransform.position + new Vector3(0, 1.7f, 0); // fallback dacă lipsește
+            : roomTransform.position + new Vector3(0, 1.7f, 0);
 
         RoomData data = new RoomData(roomName, roomTransform);
         data.viewPosition = viewPosition;

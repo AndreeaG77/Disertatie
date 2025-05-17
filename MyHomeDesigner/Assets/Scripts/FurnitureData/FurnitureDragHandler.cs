@@ -306,7 +306,7 @@ public class FurnitureDragHandler : MonoBehaviour, IBeginDragHandler, IDragHandl
 
         GameObject roomInstance = Instantiate(furnitureItem.prefab, worldPos, previewInstance.transform.rotation);
         Vector3 roomCenter = roomInstance.transform.position;
-        Vector3 viewPos = roomCenter + new Vector3(0, 1.7f, -1.5f); // sau ce funcționează bine
+        Vector3 viewPos = roomCenter + new Vector3(0, 1.7f, -1.5f);
 
         //RoomManager.Instance.RegisterRoom(roomInstance.transform, viewPos);
         RoomManager.Instance.RegisterRoom(roomInstance.transform);
@@ -318,7 +318,6 @@ public class FurnitureDragHandler : MonoBehaviour, IBeginDragHandler, IDragHandl
     {
         Vector3 worldPos = previewInstance.transform.position;
 
-        // 1. Verificăm dacă e într-o cameră
         GameObject room = GetRoomUnderCursor(worldPos);
         if (room == null)
         {
@@ -328,8 +327,7 @@ public class FurnitureDragHandler : MonoBehaviour, IBeginDragHandler, IDragHandl
             return;
         }
 
-        // 2. Așezăm pe podea (presupunem plan XY și camere pe Y = 0)
-        float y = room.transform.position.y; // sau 0 dacă podeaua e la Y=0
+        float y = room.transform.position.y;
         worldPos.y = y;
         previewInstance.transform.position = worldPos;
 
@@ -342,7 +340,6 @@ public class FurnitureDragHandler : MonoBehaviour, IBeginDragHandler, IDragHandl
             return;
         }
 
-        // 4. Instanțiem mobilierul
         GameObject instance = Instantiate(furnitureItem.prefab, worldPos, previewInstance.transform.rotation);
         Destroy(previewInstance);
         if (highlightBox != null) Destroy(highlightBox);
@@ -425,7 +422,6 @@ public class FurnitureDragHandler : MonoBehaviour, IBeginDragHandler, IDragHandl
 
     private Bounds GetPrefabBounds(GameObject prefab)
     {
-        // Obține bounds cumulat pentru toate mesh renderer-ele din prefab
         Bounds bounds = new Bounds(prefab.transform.position, Vector3.zero);
         Renderer[] renderers = prefab.GetComponentsInChildren<Renderer>();
 
@@ -452,7 +448,6 @@ public class FurnitureDragHandler : MonoBehaviour, IBeginDragHandler, IDragHandl
         Vector3 checkSize = bounds.extents;
         Vector3 checkCenter = pos + bounds.center - previewInstance.transform.position;
 
-        // Excludem și layerul "Preview", dar și "Room"
         int previewLayer = LayerMask.NameToLayer("Preview");
         //int previewLayer = LayerMask.NameToLayer("Preview");
         int mask = ~(1 << previewLayer);

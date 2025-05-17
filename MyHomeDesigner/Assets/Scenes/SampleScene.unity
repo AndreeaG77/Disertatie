@@ -1298,7 +1298,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!224 &300749193
 RectTransform:
   m_ObjectHideFlags: 0
@@ -1902,6 +1902,9 @@ MonoBehaviour:
   searchInputField: {fileID: 510867801}
   exitButton: {fileID: 1535208803}
   menuButton: {fileID: 1222943122}
+  roomsCategoryButton: {fileID: 835812610}
+  doorsCategoryButton: {fileID: 300749192}
+  windowsCategoryButton: {fileID: 1474876051}
 --- !u!1 &487149045
 GameObject:
   m_ObjectHideFlags: 0
@@ -4030,7 +4033,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!224 &1474876052
 RectTransform:
   m_ObjectHideFlags: 0

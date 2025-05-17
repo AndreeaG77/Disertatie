@@ -25,20 +25,10 @@ public class FurnitureManager : MonoBehaviour
             GameObject[] loadedPrefabs = Resources.LoadAll<GameObject>("Prefabs/" + category);
             Sprite[] loadedThumbnails = Resources.LoadAll<Sprite>("Thumbnails/" + category);
             List<FurnitureItem> furnitureList = new List<FurnitureItem>();
-            //Debug.Log(category + " " + loadedThumbnails.Length);
 
             foreach (GameObject prefab in loadedPrefabs)
             {
-                //Debug.Log("Loaded prefab: " + prefab.name);
-                // Try to find the matching thumbnail by name
                 Sprite matchingThumbnail = System.Array.Find(loadedThumbnails, thumb => thumb.name == prefab.name);
-                //if (matchingThumbnail != null)
-                //{
-                //    
-                //    Debug.Log("Thumbnail set for prefab: " + prefab.name);
-                //}
-                // Create FurnitureData
-                //FurnitureItem furnitureItem = new FurnitureItem(prefab.name, category, prefab, matchingThumbnail);
                 FurnitureItem furnitureItem = new FurnitureItem(prefab.name, category, prefab, matchingThumbnail, DeterminePlacementType(category)
 );
 
@@ -52,26 +42,75 @@ public class FurnitureManager : MonoBehaviour
             }
         }
 
-        Debug.Log("Loaded " + allFurnitureItems.Count + " furniture items from Resources.");
-
     }
+
+    //public List<FurnitureItem> GetAllFurniture()
+    //{
+    //   return new List<FurnitureItem>(allFurnitureItems);
+    //}
 
     public List<FurnitureItem> GetAllFurniture()
     {
-        return new List<FurnitureItem>(allFurnitureItems);
+        return allFurnitureItems.FindAll(item =>
+        {
+            if (ViewState.CurrentMode == ViewMode.Mode2D)
+                return item.placementType != PlacementType.Window && item.placementType != PlacementType.Door;
+
+            if (ViewState.CurrentMode == ViewMode.Mode3D)
+                return item.placementType != PlacementType.Room;
+
+            return true;
+        });
     }
+
+
+    //public List<FurnitureItem> GetFurnitureByCategory(string category)
+    //{
+    //    return categorizedFurniture.ContainsKey(category) ? new List<FurnitureItem>(categorizedFurniture[category]) : new List<FurnitureItem>();
+    //}
 
     public List<FurnitureItem> GetFurnitureByCategory(string category)
     {
-        return categorizedFurniture.ContainsKey(category) ? new List<FurnitureItem>(categorizedFurniture[category]) : new List<FurnitureItem>();
+        if (!categorizedFurniture.ContainsKey(category))
+            return new List<FurnitureItem>();
+
+        return categorizedFurniture[category].FindAll(item =>
+        {
+            if (ViewState.CurrentMode == ViewMode.Mode2D)
+                return item.placementType != PlacementType.Window && item.placementType != PlacementType.Door;
+
+            if (ViewState.CurrentMode == ViewMode.Mode3D)
+                return item.placementType != PlacementType.Room;
+
+            return true;
+        });
     }
+
+
+    //public List<FurnitureItem> SearchFurniture(string searchText)
+    //{
+    //    searchText = searchText.ToLower();
+    //    return allFurnitureItems.FindAll(item => item.name.Trim().ToLower().StartsWith(searchText));
+    //}
 
     public List<FurnitureItem> SearchFurniture(string searchText)
     {
         searchText = searchText.ToLower();
-        Debug.Log("SearchFurniture called with: " + searchText);
-        return allFurnitureItems.FindAll(item => item.name.Trim().ToLower().StartsWith(searchText));
+    
+        return allFurnitureItems.FindAll(item =>
+        {
+            bool matches = item.name.Trim().ToLower().StartsWith(searchText);
+    
+            if (ViewState.CurrentMode == ViewMode.Mode2D)
+                return matches && item.placementType != PlacementType.Window && item.placementType != PlacementType.Door;
+    
+            if (ViewState.CurrentMode == ViewMode.Mode3D)
+                return matches && item.placementType != PlacementType.Room;
+    
+            return matches;
+        });
     }
+
 
     private PlacementType DeterminePlacementType(string category)
 {

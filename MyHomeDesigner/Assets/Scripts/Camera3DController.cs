@@ -11,7 +11,7 @@ public class Camera3DController : MonoBehaviour
 
     void Start()
     {
-        Cursor.lockState = CursorLockMode.Confined; // cursorul rămâne în fereastră
+        Cursor.lockState = CursorLockMode.Confined;
         Cursor.visible = true;
     }
 
@@ -19,8 +19,7 @@ public class Camera3DController : MonoBehaviour
     {
         HandleMovement();
 
-        // Rotim camera doar dacă mouse-ul NU e peste UI și butonul drept e apăsat
-        if (Input.GetMouseButton(1)) // click dreapta = freelook
+        if (Input.GetMouseButton(1))
         {
             HandleMouseLook();
         }
@@ -28,21 +27,18 @@ public class Camera3DController : MonoBehaviour
 
     void HandleMovement()
     {
-        float horizontal = Input.GetAxis("Horizontal"); // A/D
-        float vertical = Input.GetAxis("Vertical");     // W/S
+        float horizontal = Input.GetAxis("Horizontal");
+        float vertical = Input.GetAxis("Vertical");
 
-        //Vector3 move = Vector3.forward * vertical + Vector3.right * horizontal;
-        //transform.position += move * moveSpeed * Time.deltaTime;
         Vector3 forward = new Vector3(transform.forward.x, 0, transform.forward.z).normalized;
         Vector3 right = new Vector3(transform.right.x, 0, transform.right.z).normalized;
-    
+
         Vector3 move = forward * vertical + right * horizontal;
         transform.position += move * moveSpeed * Time.deltaTime;
     }
 
     void HandleMouseLook()
     {
-        Debug.Log("am intrat in handlemouselook");
         float mouseX = Input.GetAxis("Mouse X") * lookSensitivity;
         float mouseY = Input.GetAxis("Mouse Y") * lookSensitivity;
 
@@ -53,8 +49,4 @@ public class Camera3DController : MonoBehaviour
         transform.localRotation = Quaternion.Euler(rotationX, rotationY, 0f);
     }
 
-   // bool IsPointerOverUI()
-   // {
-    //    return EventSystem.current != null && EventSystem.current.IsPointerOverGameObject();
-    //}
 }

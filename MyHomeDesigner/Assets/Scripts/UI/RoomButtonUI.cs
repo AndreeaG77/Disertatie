@@ -4,7 +4,6 @@ using System.Collections;
 
 public class RoomButtonUI : MonoBehaviour
 {
-    //private Transform targetRoom;
     private Camera mainCamera;
     private RoomManager.RoomData roomData;
 
@@ -19,7 +18,6 @@ public class RoomButtonUI : MonoBehaviour
         GetComponent<Button>().onClick.AddListener(() =>
         {
             StopAllCoroutines();
-            //Debug.Log($"Camera se va muta la: {roomData.viewPosition}");
             StartCoroutine(MoveCameraSmooth(
                 mainCamera.transform,
                 roomData.viewPosition,
@@ -93,10 +91,13 @@ public class RoomButtonUI : MonoBehaviour
         //cam.fieldOfView = 60f;
         Camera.main.GetComponent<CameraController>().enabled = false;
         Camera.main.GetComponent<Camera3DController>().enabled = true;
-
-
-        //Camera.main.fieldOfView = 60f; // poți ajusta dacă vrei unghi mai larg/strâns
-
+        FurnitureMenu furnitureMenu = Object.FindFirstObjectByType<FurnitureMenu>();
+            if (furnitureMenu != null)
+            {
+                furnitureMenu.RefreshUI();
+                furnitureMenu.RefreshCategoryButtons("3D");
+            }
+            
         Vector3 startPos = cam.position;
         Quaternion startRot = cam.rotation;
         float time = 0f;
@@ -108,11 +109,9 @@ public class RoomButtonUI : MonoBehaviour
             cam.position = Vector3.Lerp(startPos, targetPos, t);
             cam.rotation = Quaternion.Lerp(startRot, targetRot, t);
             yield return null;
-            //Debug.Log($" Camera actuală la start: {cam.position}");
         }
 
         cam.position = targetPos;
-        //Debug.Log($"Camera mutată la: {cam.position}");
         cam.rotation = targetRot;
     }
 }

@@ -66,21 +66,17 @@ public class FurnitureManipulator : MonoBehaviour
     void HandleMovement()
     {
 
-        if (Input.GetMouseButton(0)) // drag cu click stânga
+        if (Input.GetMouseButton(0))
         {
             Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
             int mask = ~(1 << LayerMask.NameToLayer("Room"));
             if (Physics.Raycast(ray, out RaycastHit hit, 100f, mask))
             //if (Physics.Raycast(ray, out RaycastHit hit, 100f, LayerMask.GetMask("Room")))
             {
-                //Debug.Log("test1");
-                //Debug.Log(selectedFurniture);
-                //Debug.Log(hit.collider.gameObject);
                 if (hit.collider.gameObject != selectedFurniture)
                     return;
-                //Debug.Log("test2");
                 Vector3 newPos = hit.point;
-                newPos.y = selectedFurniture.transform.position.y; // păstrăm poziția pe Y
+                newPos.y = selectedFurniture.transform.position.y;
                 selectedFurniture.transform.position = newPos;
             }
         }
@@ -101,8 +97,8 @@ public class FurnitureManipulator : MonoBehaviour
         {
             Vector3 scale = selectedFurniture.transform.localScale;
             scale += Vector3.one * scroll;
-            scale = Vector3.Max(scale, Vector3.one * 0.2f); // dimensiune minimă
-            scale = Vector3.Min(scale, Vector3.one * 5f);   // dimensiune maximă
+            scale = Vector3.Max(scale, Vector3.one * 0.2f);
+            scale = Vector3.Min(scale, Vector3.one * 5f); 
             selectedFurniture.transform.localScale = scale;
         }
     }

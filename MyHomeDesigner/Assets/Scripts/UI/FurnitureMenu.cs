@@ -14,6 +14,10 @@ public class FurnitureMenu : MonoBehaviour
     public TMP_InputField searchInputField; // Search bar input field
     public Button exitButton; // Exit button
     public Button menuButton;
+    public GameObject roomsCategoryButton;
+    public GameObject doorsCategoryButton;
+    public GameObject windowsCategoryButton;
+
 
     private List<FurnitureItem> allFurnitureItems = new List<FurnitureItem>(); // Stores all items
     private List<GameObject> spawnedFurnitureUI = new List<GameObject>(); // Stores created UI elements
@@ -87,5 +91,42 @@ public class FurnitureMenu : MonoBehaviour
         furniturePanel.SetActive(true);
         menuButton.gameObject.SetActive(false);
     }
+
+    public void RefreshUI()
+    {
+        // Refacem lista completă, filtrată de FurnitureManager
+        allFurnitureItems = FurnitureManager.Instance.GetAllFurniture();
+
+        // Afișăm din nou, luând în calcul search-ul curent (dacă există)
+        if (!string.IsNullOrEmpty(searchInputField.text))
+        {
+            OnSearchValueChanged(searchInputField.text);
+        }
+        else
+        {
+            DisplayFurnitureItems(allFurnitureItems);
+        }
+    }
+
+    public void RefreshCategoryButtons(string mode)
+    {
+        bool is2D = mode == "2D";
+
+        if(is2D)
+        {
+            doorsCategoryButton.SetActive(!is2D);
+            windowsCategoryButton.SetActive(!is2D);
+            roomsCategoryButton.SetActive(is2D);
+        }
+        else
+        {
+            roomsCategoryButton.SetActive(is2D);
+            doorsCategoryButton.SetActive(!is2D);
+            windowsCategoryButton.SetActive(!is2D);
+        }
+        
+    }
+
+
 }
 
