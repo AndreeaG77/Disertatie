@@ -22,7 +22,8 @@ public class RoomButtonUI : MonoBehaviour
                 mainCamera.transform,
                 roomData.viewPosition,
                 Quaternion.Euler(0f, 0f, 0f),
-                1f
+                1f,
+                roomData.roomTransform
             ));
         });
 
@@ -85,19 +86,38 @@ public class RoomButtonUI : MonoBehaviour
         });*/
     }
 
-    private IEnumerator MoveCameraSmooth(Transform cam, Vector3 targetPos, Quaternion targetRot, float duration)
+    private IEnumerator MoveCameraSmooth(Transform cam, Vector3 targetPos, Quaternion targetRot, float duration, Transform roomTransform)
     {
         Camera.main.orthographic = false;
         //cam.fieldOfView = 60f;
         Camera.main.GetComponent<CameraController>().enabled = false;
         Camera.main.GetComponent<Camera3DController>().enabled = true;
+        ViewState.CurrentMode = ViewMode.Mode3D;
+
+
+        //Transform floor = roomTransform.GetComponentInChildren<Transform>().Find("Floor");
+        //Transform floor = roomTransform.GetComponentInChildren<Transform>(true);
+        foreach (Transform t in roomTransform.GetComponentsInChildren<Transform>(true))
+        {
+            if(t.name.Contains("Floor"))
+            {
+                Renderer rend = t.GetComponent<Renderer>();
+                if (rend != null && rend.material != null)
+                {
+                    Color c = rend.material.color;
+                    c.a = 1f;
+                    rend.material.color = c;
+                }
+            }
+        }
+
         FurnitureMenu furnitureMenu = Object.FindFirstObjectByType<FurnitureMenu>();
             if (furnitureMenu != null)
             {
                 furnitureMenu.RefreshUI();
                 furnitureMenu.RefreshCategoryButtons("3D");
             }
-            
+
         Vector3 startPos = cam.position;
         Quaternion startRot = cam.rotation;
         float time = 0f;

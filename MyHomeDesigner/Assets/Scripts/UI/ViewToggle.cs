@@ -52,6 +52,28 @@ public class ViewToggle : MonoBehaviour
             Cursor.lockState = CursorLockMode.None;
             Cursor.visible = true;
             ViewState.CurrentMode = ViewMode.Mode2D;
+
+            // Reset floor albedo pentru toate camerele când revii în 2D
+            foreach (var room in RoomManager.Instance.GetAllRooms())
+            {
+                //Transform floor = room.GetComponentInChildren<Transform>(true);
+                foreach (Transform t in room.roomTransform.GetComponentsInChildren<Transform>(true))
+                {
+                    if(t.name.Contains("Floor"))
+                    {
+                        //Debug.Log("alooo?");
+                        Renderer rend = t.GetComponent<Renderer>();
+                        if (rend != null && rend.material != null)
+                        {
+                            Color c = rend.material.color;
+                            c.a = 150 / 255f;
+                            rend.material.color = c;
+                        }
+                    }
+                }
+            }
+
+
             FurnitureMenu furnitureMenu = Object.FindFirstObjectByType<FurnitureMenu>();
             if (furnitureMenu != null)
             {
@@ -62,4 +84,5 @@ public class ViewToggle : MonoBehaviour
 
         }
     }
+
 }

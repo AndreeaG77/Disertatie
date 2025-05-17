@@ -11,7 +11,8 @@ public class FurnitureSelector : MonoBehaviour
         {
             
             Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
-            int furnitureLayerMask = ~(1 << LayerMask.NameToLayer("Room"));
+            //int furnitureLayerMask = ~(1 << LayerMask.NameToLayer("Room"));
+            int furnitureLayerMask = ~(1 << LayerMask.NameToLayer("Room") | 1 << LayerMask.NameToLayer("Wall"));
             
             if (Physics.Raycast(ray, out RaycastHit hitInfo, Mathf.Infinity, furnitureLayerMask))
             {

@@ -32,6 +32,12 @@ public class RoomManager : MonoBehaviour
         else Destroy(gameObject);
     }
 
+    public List<RoomData> GetAllRooms()
+    {
+        return allRooms;
+    }
+
+
     public void RegisterRoom(Transform roomTransform)
     {
         roomCount++;
@@ -48,7 +54,7 @@ public class RoomManager : MonoBehaviour
 
         Transform cameraSpawn = roomTransform.Find("CameraSpawn");
 
-        if (cameraSpawn != null)
+       /* if (cameraSpawn != null)
         {
             GameObject marker = GameObject.CreatePrimitive(PrimitiveType.Sphere);
             marker.transform.position = cameraSpawn.position;
@@ -59,7 +65,7 @@ public class RoomManager : MonoBehaviour
         else
         {
             Debug.LogWarning($"CameraSpawn NU a fost găsit pentru {roomName}. Se folosește fallback.");
-        }
+        }*/
         
         Vector3 viewPosition = cameraSpawn != null 
             ? cameraSpawn.position 
