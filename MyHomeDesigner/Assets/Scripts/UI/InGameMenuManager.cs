@@ -27,6 +27,7 @@ public class InGameMenuManager : MonoBehaviour
     public Button soundOffButton;
 
     private bool isMenuOpen = false;
+    private AudioSource musicSource;
 
     void Start()
     {
@@ -43,6 +44,18 @@ public class InGameMenuManager : MonoBehaviour
         menuPanel.SetActive(false);
         settingsPanel.SetActive(false);
         buttonsPanel.SetActive(true);
+
+        GameObject musicManager = GameObject.Find("MusicManager");
+        if (musicManager != null)
+            musicSource = musicManager.GetComponent<AudioSource>();
+
+        if (musicSource != null)
+        {
+            float initialVolume = musicSource.volume;
+            initialVolume = initialVolume * 100f;
+            volumeSlider.value = initialVolume;
+            UpdateVolumeUI(initialVolume);
+        }
     }
 
     void Update()
@@ -112,5 +125,9 @@ public class InGameMenuManager : MonoBehaviour
         bool isMuted = percent == 0;
         soundOnButton.gameObject.SetActive(!isMuted);
         soundOffButton.gameObject.SetActive(isMuted);
+
+        if (musicSource != null)
+            musicSource.volume = value / 100f;
     }
+
 }
