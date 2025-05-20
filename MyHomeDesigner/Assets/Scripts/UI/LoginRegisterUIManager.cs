@@ -116,6 +116,9 @@ public class LoginRegisterUIManager : MonoBehaviour
                 PlayerPrefs.Save();
             }
 
+            PlayerPrefs.SetString("sessionEmail", email);
+            PlayerPrefs.SetString("sessionToken", response.token);
+            PlayerPrefs.Save();
             SceneManager.LoadScene("MainMenu");
         }
         else
@@ -141,6 +144,9 @@ public class LoginRegisterUIManager : MonoBehaviour
 
         if (request.result == UnityWebRequest.Result.Success)
         {
+            PlayerPrefs.SetString("sessionEmail", email);
+            PlayerPrefs.SetString("sessionToken", token);
+            PlayerPrefs.Save();
             SceneManager.LoadScene("MainMenu");
         }
         else
@@ -331,11 +337,5 @@ public class RegisterRequest
 {
     public string email;
     public string password;
-}
-
-[System.Serializable]
-public class EmailOnlyPayload
-{
-    public string email;
 }
 

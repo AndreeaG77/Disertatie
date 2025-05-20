@@ -3,6 +3,10 @@ using UnityEngine.UI;
 using UnityEngine.SceneManagement;
 using TMPro;
 using System.Collections.Generic;
+using System.Collections;
+using UnityEngine.Networking;
+
+
 
 public class MainMenuUIManager : MonoBehaviour
 {
@@ -24,6 +28,18 @@ public class MainMenuUIManager : MonoBehaviour
     private string selectedProjectId = null;
     private Button lastSelectedButton = null;
 
+    [Header("Account")]
+    public GameObject accountPanel;
+    public GameObject changePasswordPanel;
+    public GameObject deleteAccountPanel;
+
+    public TMP_InputField emailInput;
+    public TMP_InputField passwordInput;
+
+    private string originalEmail;
+    private bool isEditingEmail = false;
+
+
     void Start()
     {
         createProjectButton.onClick.AddListener(OnCreateNewProject);
@@ -34,16 +50,22 @@ public class MainMenuUIManager : MonoBehaviour
 
         loadSelectedButton.interactable = false;
         projectsPanel.SetActive(false);
+        accountPanel.SetActive(false);
+        changePasswordPanel.SetActive(false);
+        deleteAccountPanel.SetActive(false);
     }
 
     public void OnCreateNewProject()
     {
-        SceneManager.LoadScene("DefaultScene"); // ← înlocuiește cu numele corect
+        SceneManager.LoadScene("DefaultScene");
     }
 
     public void OnLogoutClicked()
     {
-        SceneManager.LoadScene("LoginPage"); // ← înlocuiește cu numele corect
+        PlayerPrefs.DeleteKey("sessionEmail");
+        PlayerPrefs.DeleteKey("sessionToken");
+        PlayerPrefs.Save();
+        SceneManager.LoadScene("LoginPage");
     }
 
     public void OnLoadProjectClicked()
@@ -55,8 +77,7 @@ public class MainMenuUIManager : MonoBehaviour
 
     public void LoadProjects()
     {
-        // Simulăm niște proiecte (vezi cum se poate face legătura cu contul activ ulterior)
-        List<string> projectNames = new List<string> { "Living Room A", "Modern Kitchen", "Studio Setup"};
+        List<string> projectNames = new List<string> { "Living Room A", "Modern Kitchen", "Studio Setup" };
 
         foreach (Transform child in projectsContentPanel)
         {
@@ -71,7 +92,8 @@ public class MainMenuUIManager : MonoBehaviour
             Button btnComponent = newBtn.GetComponent<Button>();
             string thisProjectId = projectName;
 
-            btnComponent.onClick.AddListener(() => {
+            btnComponent.onClick.AddListener(() =>
+            {
                 SelectProject(thisProjectId, btnComponent);
             });
         }
@@ -89,7 +111,7 @@ public class MainMenuUIManager : MonoBehaviour
         }
 
         Image currentImage = btn.GetComponent<Image>();
-        currentImage.color = new Color(0.7f, 0.9f, 1f); // albastru deschis
+        currentImage.color = new Color(0.7f, 0.9f, 1f);
 
         lastSelectedButton = btn;
 
@@ -102,8 +124,7 @@ public class MainMenuUIManager : MonoBehaviour
         if (!string.IsNullOrEmpty(selectedProjectId))
         {
             Debug.Log("Loading project: " + selectedProjectId);
-            // Aici o să încarci efectiv proiectul bazat pe ID-ul/numelui
-            SceneManager.LoadScene("DefaultWorkScene"); // Simulat
+            SceneManager.LoadScene("DefaultScene");
         }
     }
 
@@ -112,4 +133,131 @@ public class MainMenuUIManager : MonoBehaviour
         projectsPanel.SetActive(false);
         mainMenuPanel.SetActive(true);
     }
+
+    public void OnOpenAccountPanel()
+    {
+        mainMenuPanel.SetActive(false);
+        accountPanel.SetActive(true);
+
+        originalEmail = PlayerPrefs.GetString("sessionEmail", "");
+        emailInput.text = originalEmail;
+        emailInput.interactable = false;
+
+        passwordInput.text = "********";
+        passwordInput.interactable = false;
+
+        isEditingEmail = false;
+    }
+
+    public void OnChangeEmailClicked()
+    {
+        emailInput.interactable = true;
+        isEditingEmail = true;
+    }
+
+    public void OnChangePasswordClicked()
+    {
+        accountPanel.SetActive(false);
+        changePasswordPanel.SetActive(true);
+    }
+
+    public void OnDeleteAccountClicked()
+    {
+        accountPanel.SetActive(false);
+        deleteAccountPanel.SetActive(true);
+    }
+
+    public void OnAccountSaveClicked()
+    {
+        accountPanel.SetActive(false);
+        mainMenuPanel.SetActive(true);
+
+        if (isEditingEmail && emailInput.text != originalEmail)
+        {
+            StartCoroutine(UpdateEmailRequest(emailInput.text));
+        }
+
+        isEditingEmail = false;
+    }
+
+    public void OnAccountCancelClicked()
+    {
+        emailInput.text = originalEmail;
+        emailInput.interactable = false;
+
+        passwordInput.text = "********";
+        passwordInput.interactable = false;
+
+        isEditingEmail = false;
+
+        accountPanel.SetActive(false);
+        mainMenuPanel.SetActive(true);
+    }
+
+    IEnumerator UpdateEmailRequest(string newEmail)
+    {
+        string token = PlayerPrefs.GetString("userToken", "");
+        string jsonData = JsonUtility.ToJson(new EmailOnlyPayload { email = newEmail });
+
+        UnityWebRequest request = new UnityWebRequest("http://localhost:3000/api/update-email", "POST");
+        byte[] bodyRaw = System.Text.Encoding.UTF8.GetBytes(jsonData);
+        request.uploadHandler = new UploadHandlerRaw(bodyRaw);
+        request.downloadHandler = new DownloadHandlerBuffer();
+        request.SetRequestHeader("Content-Type", "application/json");
+        request.SetRequestHeader("Authorization", "Bearer " + token);
+
+        yield return request.SendWebRequest();
+
+        if (request.result == UnityWebRequest.Result.Success)
+        {
+            Debug.Log("Email updated successfully");
+            PlayerPrefs.SetString("sessionEmail", newEmail);
+            PlayerPrefs.Save();
+        }
+        else
+        {
+            Debug.LogWarning("Failed to update email: " + request.downloadHandler.text);
+        }
+    }
+
+    public void OnDeleteCancelClicked()
+    {
+        deleteAccountPanel.SetActive(false);
+        accountPanel.SetActive(true);
+    }
+
+    public void OnDeleteConfirmClicked()
+    {
+        StartCoroutine(DeleteAccountRequest());
+    }
+
+    IEnumerator DeleteAccountRequest()
+    {
+        string token = PlayerPrefs.GetString("sessionToken", "");
+
+        UnityWebRequest request = UnityWebRequest.Delete("http://localhost:3000/api/delete-account");
+        request.SetRequestHeader("Authorization", "Bearer " + token);
+
+        yield return request.SendWebRequest();
+
+        if (request.result == UnityWebRequest.Result.Success)
+        {
+            Debug.Log("Account deleted successfully");
+
+            PlayerPrefs.DeleteKey("userEmail");
+            PlayerPrefs.DeleteKey("userToken");
+            PlayerPrefs.DeleteKey("sessionEmail");
+            PlayerPrefs.DeleteKey("sessionToken");
+            PlayerPrefs.SetInt("rememberMe", 0);
+            PlayerPrefs.Save();
+
+            SceneManager.LoadScene("LoginPage");
+        }
+        else
+        {
+            Debug.LogWarning("Failed to delete account: " + request.downloadHandler.text);
+        }
+    }
+
+
 }
