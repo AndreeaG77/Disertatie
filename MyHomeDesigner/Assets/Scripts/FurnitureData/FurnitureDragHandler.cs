@@ -1,6 +1,7 @@
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
+using System.Collections;
 
 public class FurnitureDragHandler : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDragHandler
 {
@@ -341,12 +342,38 @@ public class FurnitureDragHandler : MonoBehaviour, IBeginDragHandler, IDragHandl
         }
 
         GameObject instance = Instantiate(furnitureItem.prefab, worldPos, previewInstance.transform.rotation);
+        Rigidbody rb = instance.GetComponent<Rigidbody>();
+
+        if (rb != null)
+        {
+            rb.isKinematic = false;  
+            rb.useGravity = true;
+
+            int roomLayer = LayerMask.NameToLayer("Room");
+            Collider[] furnitureColliders = instance.GetComponentsInChildren<Collider>();
+
+            foreach (var col in furnitureColliders)
+            {
+                Physics.IgnoreLayerCollision(col.gameObject.layer, roomLayer, true);
+            }
+
+            StartCoroutine(SetKinematicAfterLanding(rb)); 
+       }
+
         Destroy(previewInstance);
         if (highlightBox != null) Destroy(highlightBox);
 
         //GameObject instance = Instantiate(furnitureItem.prefab, worldPos, previewInstance.transform.rotation);
         instance.AddComponent<SelectableFurniture>();
 
+    }
+
+    IEnumerator SetKinematicAfterLanding(Rigidbody rb)
+    {
+        yield return new WaitUntil(() => rb.IsSleeping());
+        //yield return new WaitForSeconds(0.5f);
+        rb.isKinematic = true;
+        rb.useGravity = false;
     }
 
     private void PlaceDoor()
@@ -455,7 +482,7 @@ public class FurnitureDragHandler : MonoBehaviour, IBeginDragHandler, IDragHandl
         return Physics.CheckBox(checkCenter, checkSize, previewInstance.transform.rotation, mask);
     }
 
-    private bool IsFurnitureOverlapping(Vector3 pos)
+    /*private bool IsFurnitureOverlapping(Vector3 pos)
     {
         Bounds bounds = GetPrefabBounds(previewInstance);
         Vector3 checkSize = bounds.extents;
@@ -466,7 +493,75 @@ public class FurnitureDragHandler : MonoBehaviour, IBeginDragHandler, IDragHandl
         int mask = ~( (1 << previewLayer) | (1 << roomLayer) );
 
         return Physics.CheckBox(checkCenter, checkSize, previewInstance.transform.rotation, mask);
+    }*/
+
+    /*bool IsFurnitureOverlapping(Vector3 position)
+    {
+        int ignoreMask = LayerMask.GetMask("Room", "Floor", "Preview");
+        int mask = ~ignoreMask;
+        Vector3 halfExtents = furnitureItem.prefab.GetComponent<Renderer>().bounds.extents;
+        Collider[] hits = Physics.OverlapBox(position, halfExtents, Quaternion.identity, mask);
+
+        foreach (var hit in hits)
+        {
+            if (hit.gameObject.name.Contains("Dulap"))
+            {
+                Debug.Log("il vede sau nu??");
+                return true;
+            }
+        }
+        return false;
+    }*/
+    
+    bool IsFurnitureOverlapping(Vector3 position)
+    {
+        Ray ray = new Ray(position + Vector3.up * 3f, Vector3.down);
+        float distance = 10f;
+        int furnitureMask = LayerMask.GetMask("Furniture");
+
+        return Physics.Raycast(ray, distance, furnitureMask);
     }
+
+
+    /*bool IsRaycastHittingFurniture(GameObject prefab, Vector3 position)
+    {
+        Renderer renderer = prefab.GetComponentInChildren<Renderer>();
+        if (renderer == null)
+        {
+            Debug.LogWarning("Prefabul nu are Renderer!");
+            return false;
+        }
+
+        Vector3 extents = renderer.bounds.extents;
+        float heightOffset = 2f; 
+        float castDistance = 5f;
+
+        Vector3[] offsets = new Vector3[]
+        {
+            Vector3.zero,
+            new Vector3(extents.x, 0, extents.z),
+            new Vector3(-extents.x, 0, extents.z),
+            new Vector3(extents.x, 0, -extents.z),
+            new Vector3(-extents.x, 0, -extents.z)
+        };
+
+        int furnitureMask = LayerMask.GetMask("Furniture");
+
+        foreach (var offset in offsets)
+        {
+            Vector3 rayOrigin = position + offset + Vector3.up * heightOffset;
+
+            if (Physics.Raycast(rayOrigin, Vector3.down, castDistance, furnitureMask))
+            {
+                Debug.DrawRay(rayOrigin, Vector3.down * castDistance, Color.red, 1f);
+                return true;
+            }
+        }
+
+        return false;
+    }*/
+
+
 
     private GameObject GetRoomUnderCursor(Vector3 pos)
     {

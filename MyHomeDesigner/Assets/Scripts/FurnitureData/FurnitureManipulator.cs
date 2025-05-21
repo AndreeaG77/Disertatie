@@ -63,7 +63,7 @@ public class FurnitureManipulator : MonoBehaviour
     }
 
 
-    void HandleMovement()
+    /*void HandleMovement()
     {
 
         if (Input.GetMouseButton(0))
@@ -80,7 +80,82 @@ public class FurnitureManipulator : MonoBehaviour
                 selectedFurniture.transform.position = newPos;
             }
         }
+    }*/
+
+    /*void HandleMovement()
+    {
+        if (Input.GetMouseButton(0))
+        {
+            Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
+            int mask = ~(1 << LayerMask.NameToLayer("Room"));
+
+            if (Physics.Raycast(ray, out RaycastHit hit, 100f, mask))
+            {
+                if (hit.collider.gameObject != selectedFurniture)
+                    return;
+
+                Vector3 newPos = hit.point;
+                newPos.y = selectedFurniture.transform.position.y;
+
+                Rigidbody rb = selectedFurniture.GetComponent<Rigidbody>();
+                if (rb != null)
+                {
+                    rb.MovePosition(newPos);
+                }
+                else
+                {
+                    selectedFurniture.transform.position = newPos; // fallback
+                }
+            }
+        }
+    }*/
+
+    void HandleMovement()
+    {
+        if (Input.GetMouseButton(0))
+        {
+            Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
+            int mask = ~(1 << LayerMask.NameToLayer("Room"));
+            if (Physics.Raycast(ray, out RaycastHit hit, 100f, mask))
+            {
+                if (hit.collider.gameObject != selectedFurniture)
+                    return;
+
+                Vector3 targetPos = hit.point;
+                targetPos.y = selectedFurniture.transform.position.y;
+
+                //Vector3 halfExtents = selectedFurniture.GetComponent<Collider>().bounds.extents;
+
+                //Collider[] hits = Physics.OverlapBox(targetPos, halfExtents, selectedFurniture.transform.rotation);
+                BoxCollider col = selectedFurniture.GetComponent<BoxCollider>();
+                Vector3 size = Vector3.Scale(col.size, selectedFurniture.transform.lossyScale);
+                Vector3 halfExtents = size * 0.5f;
+
+                Collider[] hits = Physics.OverlapBox(
+                    targetPos,
+                    halfExtents,
+                    selectedFurniture.transform.rotation
+                );
+
+                foreach (var h in hits)
+                {
+                    if (h.gameObject != selectedFurniture && h.gameObject.layer != LayerMask.NameToLayer("Room") && h.gameObject.layer != LayerMask.NameToLayer("Floor"))
+                    {
+                        Debug.Log("Mutarea ar cauza suprapunere cu: " + h.name);
+                        return;
+                    }
+                }
+
+                Rigidbody rb = selectedFurniture.GetComponent<Rigidbody>();
+                if (rb != null)
+                    rb.MovePosition(targetPos);
+                else
+                    selectedFurniture.transform.position = targetPos;
+            }
+        }
     }
+
+
 
     void HandleRotation()
     {
