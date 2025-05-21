@@ -39,6 +39,14 @@ public class MainMenuUIManager : MonoBehaviour
     private string originalEmail;
     private bool isEditingEmail = false;
 
+    [Header("Change Password References")]
+    public TMP_InputField oldPasswordInput;
+    public TMP_InputField newPasswordInput;
+    public TMP_InputField confirmPasswordInput;
+    public GameObject wrongOldPasswordMessage;
+    public GameObject newPasswordMismatchMessage;
+    public GameObject changePasswordPopupPanel;
+
 
     void Start()
     {
@@ -196,7 +204,7 @@ public class MainMenuUIManager : MonoBehaviour
 
     IEnumerator UpdateEmailRequest(string newEmail)
     {
-        string token = PlayerPrefs.GetString("userToken", "");
+        string token = PlayerPrefs.GetString("sessionToken", "");
         string jsonData = JsonUtility.ToJson(new EmailOnlyPayload { email = newEmail });
 
         UnityWebRequest request = new UnityWebRequest("http://localhost:3000/api/update-email", "POST");
@@ -211,7 +219,16 @@ public class MainMenuUIManager : MonoBehaviour
         if (request.result == UnityWebRequest.Result.Success)
         {
             Debug.Log("Email updated successfully");
+            UpdateEmailResponse response = JsonUtility.FromJson<UpdateEmailResponse>(request.downloadHandler.text);
+            string newToken = response.token;
+            
             PlayerPrefs.SetString("sessionEmail", newEmail);
+            PlayerPrefs.SetString("sessionToken", newToken);
+            if (PlayerPrefs.GetInt("rememberMe", 0) == 1)
+            {
+                PlayerPrefs.SetString("userEmail", newEmail);
+                PlayerPrefs.SetString("userToken", newToken);
+            }
             PlayerPrefs.Save();
         }
         else
@@ -257,6 +274,98 @@ public class MainMenuUIManager : MonoBehaviour
         {
             Debug.LogWarning("Failed to delete account: " + request.downloadHandler.text);
         }
+    }
+
+    public void OnChangePasswordCancelClicked()
+    {
+        changePasswordPanel.SetActive(false);
+        accountPanel.SetActive(true);
+
+        oldPasswordInput.text = "";
+        newPasswordInput.text = "";
+        confirmPasswordInput.text = "";
+        wrongOldPasswordMessage.SetActive(false);
+        newPasswordMismatchMessage.SetActive(false);
+    }
+
+    public void OnChangePasswordSaveClicked()
+    {
+        string oldPass = oldPasswordInput.text.Trim();
+        string newPass = newPasswordInput.text.Trim();
+        string confirmPass = confirmPasswordInput.text.Trim();
+
+        wrongOldPasswordMessage.SetActive(false);
+        newPasswordMismatchMessage.SetActive(false);
+
+        if (newPass != confirmPass)
+        {
+            newPasswordMismatchMessage.SetActive(true);
+            return;
+        }
+
+        StartCoroutine(ChangePasswordRequest(oldPass, newPass));
+    }
+
+    IEnumerator ChangePasswordRequest(string oldPassword, string newPassword)
+    {
+        string token = PlayerPrefs.GetString("sessionToken", "");
+
+        ChangePasswordPayload payload = new ChangePasswordPayload
+        {
+            oldPassword = oldPassword,
+            newPassword = newPassword
+        };
+
+        string jsonData = JsonUtility.ToJson(payload);
+
+        UnityWebRequest request = new UnityWebRequest("http://localhost:3000/api/change-password", "POST");
+        byte[] bodyRaw = System.Text.Encoding.UTF8.GetBytes(jsonData);
+        request.uploadHandler = new UploadHandlerRaw(bodyRaw);
+        request.downloadHandler = new DownloadHandlerBuffer();
+        request.SetRequestHeader("Content-Type", "application/json");
+        request.SetRequestHeader("Authorization", "Bearer " + token);
+
+        yield return request.SendWebRequest();
+
+        if (request.result == UnityWebRequest.Result.Success)
+        {
+            Debug.Log("Password changed");
+
+            ChangePasswordResponse response = JsonUtility.FromJson<ChangePasswordResponse>(request.downloadHandler.text);
+
+            // Update PlayerPrefs
+            PlayerPrefs.SetString("sessionToken", response.token);
+            if (PlayerPrefs.GetInt("rememberMe", 0) == 1)
+            {
+                PlayerPrefs.SetString("userToken", response.token);
+            }
+            PlayerPrefs.Save();
+
+            // UI Feedback
+            changePasswordPanel.SetActive(false);
+            wrongOldPasswordMessage.SetActive(false);
+            newPasswordMismatchMessage.SetActive(false);
+            accountPanel.SetActive(true);
+            StartCoroutine(ShowPasswordChangedPopup());
+        }
+        else
+        {
+            if (request.responseCode == 401)
+            {
+                wrongOldPasswordMessage.SetActive(true);
+            }
+            else
+            {
+                Debug.LogWarning("Password change failed: " + request.downloadHandler.text);
+            }
+        }
+    }
+
+    IEnumerator ShowPasswordChangedPopup()
+    {
+        changePasswordPopupPanel.SetActive(true);
+        yield return new WaitForSeconds(1f);
+        changePasswordPopupPanel.SetActive(false);
     }
 
 
