@@ -38,6 +38,8 @@ public class MainMenuUIManager : MonoBehaviour
 
     private string originalEmail;
     private bool isEditingEmail = false;
+    private Button lastDeleteButton = null; 
+
 
     [Header("Change Password References")]
     public TMP_InputField oldPasswordInput;
@@ -47,6 +49,13 @@ public class MainMenuUIManager : MonoBehaviour
     public GameObject newPasswordMismatchMessage;
     public GameObject changePasswordPopupPanel;
 
+    [Header("New Project Panel")]
+    public GameObject newProjectPanel;
+    public TMP_InputField projectNameInput;
+    public Button saveProjectButton;
+    public GameObject enterNameText;
+
+
 
     void Start()
     {
@@ -55,6 +64,7 @@ public class MainMenuUIManager : MonoBehaviour
         logoutButton.onClick.AddListener(OnLogoutClicked);
         loadSelectedButton.onClick.AddListener(OnLoadSelectedProject);
         backButton.onClick.AddListener(OnBackClicked);
+        //saveProjectButton.onClick.AddListener(OnCreateProjectConfirmed);
 
         loadSelectedButton.interactable = false;
         projectsPanel.SetActive(false);
@@ -65,8 +75,35 @@ public class MainMenuUIManager : MonoBehaviour
 
     public void OnCreateNewProject()
     {
+        mainMenuPanel.SetActive(false);
+        newProjectPanel.SetActive(true);
+
+    }
+
+    public void OnCreateProjectConfirmed()
+    {
+        string projectName = projectNameInput.text.Trim();
+        if (string.IsNullOrEmpty(projectName))
+        {
+            enterNameText.SetActive(true);
+            return;
+        }
+
+        PlayerPrefs.SetString("projectName", projectName);
+        PlayerPrefs.Save();
+
+        Debug.Log("Creating project: " + projectName);
+
+        newProjectPanel.SetActive(false);
+        projectNameInput.text = "";
+        mainMenuPanel.SetActive(true);
+        enterNameText.SetActive(false);
+        PlayerPrefs.DeleteKey("loadedProjectData");
+        PlayerPrefs.Save();
+
         SceneManager.LoadScene("DefaultScene");
     }
+
 
     public void OnLogoutClicked()
     {
@@ -85,29 +122,72 @@ public class MainMenuUIManager : MonoBehaviour
 
     public void LoadProjects()
     {
-        List<string> projectNames = new List<string> { "Living Room A", "Modern Kitchen", "Studio Setup" };
+        StartCoroutine(FetchProjectsFromBackend());
+    }
 
-        foreach (Transform child in projectsContentPanel)
+    IEnumerator FetchProjectsFromBackend()
+    {
+        string token = PlayerPrefs.GetString("sessionToken", "");
+        string userId = "";
+
+        UnityWebRequest validateReq = UnityWebRequest.Get("http://localhost:3000/api/validate-token");
+        validateReq.SetRequestHeader("Authorization", "Bearer " + token);
+        yield return validateReq.SendWebRequest();
+
+        if (validateReq.result == UnityWebRequest.Result.Success)
         {
-            Destroy(child.gameObject);
+            var response = JsonUtility.FromJson<UserValidationResponse>(validateReq.downloadHandler.text);
+            userId = response.user._id;
+        }
+        else
+        {
+            Debug.LogError("Token invalid sau expirat.");
+            yield break;
         }
 
-        foreach (string projectName in projectNames)
+        string url = $"http://localhost:3000/api/projects/{userId}";
+        UnityWebRequest request = UnityWebRequest.Get(url);
+        request.SetRequestHeader("Authorization", "Bearer " + token);
+
+        yield return request.SendWebRequest();
+
+        if (request.result == UnityWebRequest.Result.Success)
         {
-            GameObject newBtn = Instantiate(projectButtonPrefab, projectsContentPanel);
-            newBtn.GetComponentInChildren<TMP_Text>().text = projectName;
+            foreach (Transform child in projectsContentPanel)
+                Destroy(child.gameObject);
 
-            Button btnComponent = newBtn.GetComponent<Button>();
-            string thisProjectId = projectName;
+            ProjectBackendList backendList = JsonUtility.FromJson<ProjectBackendList>("{\"projects\":" + request.downloadHandler.text + "}");
 
-            btnComponent.onClick.AddListener(() =>
+            foreach (ProjectBackend proj in backendList.projects)
             {
-                SelectProject(thisProjectId, btnComponent);
-            });
+                GameObject newBtn = Instantiate(projectButtonPrefab, projectsContentPanel);
+                newBtn.GetComponentInChildren<TMP_Text>().text = proj.name;
+
+                Button btnComponent = newBtn.GetComponent<Button>();
+                Button deleteBtn = newBtn.transform.Find("DeleteButton").GetComponent<Button>();
+                deleteBtn.gameObject.SetActive(false);
+                string projectJson = JsonUtility.ToJson(proj);
+
+                btnComponent.onClick.AddListener(() =>
+                {
+                    PlayerPrefs.SetString("loadedProjectData", projectJson);
+                    SelectProject(proj.name, btnComponent, deleteBtn);
+                });
+
+                deleteBtn.onClick.AddListener(() =>
+                {
+                    StartCoroutine(DeleteProjectFromBackend(proj._id, newBtn));
+                });
+            }
+        }
+        else
+        {
+            Debug.LogError("Eroare la încărcarea proiectelor: " + request.downloadHandler.text);
         }
     }
 
-    public void SelectProject(string projectId, Button btn)
+
+    public void SelectProject(string projectId, Button btn, Button deleteBtn)
     {
         selectedProjectId = projectId;
         loadSelectedButton.interactable = true;
@@ -123,14 +203,47 @@ public class MainMenuUIManager : MonoBehaviour
 
         lastSelectedButton = btn;
 
+        if (lastDeleteButton != null)
+            lastDeleteButton.gameObject.SetActive(false);
+
+        deleteBtn.gameObject.SetActive(true);
+        lastDeleteButton = deleteBtn;
+
         Debug.Log("Selected project: " + selectedProjectId);
     }
 
+    IEnumerator DeleteProjectFromBackend(string projectId, GameObject buttonToRemove)
+    {
+        string token = PlayerPrefs.GetString("sessionToken", "");
+
+        if (string.IsNullOrEmpty(token))
+        {
+            Debug.LogError("No token found");
+            yield break;
+        }
+
+        UnityWebRequest request = UnityWebRequest.Delete("http://localhost:3000/api/projects/" + projectId);
+        request.SetRequestHeader("Authorization", "Bearer " + token);
+
+        yield return request.SendWebRequest();
+
+        if (request.result == UnityWebRequest.Result.Success)
+        {
+            Debug.Log("Project deleted successfully");
+            Destroy(buttonToRemove);
+        }
+        else
+        {
+            Debug.LogWarning("Failed to delete project: " + request.downloadHandler.text);
+        }
+    }
 
     public void OnLoadSelectedProject()
     {
         if (!string.IsNullOrEmpty(selectedProjectId))
         {
+            PlayerPrefs.SetString("projectName", selectedProjectId);
+            PlayerPrefs.Save();
             Debug.Log("Loading project: " + selectedProjectId);
             SceneManager.LoadScene("DefaultScene");
         }
@@ -221,7 +334,7 @@ public class MainMenuUIManager : MonoBehaviour
             Debug.Log("Email updated successfully");
             UpdateEmailResponse response = JsonUtility.FromJson<UpdateEmailResponse>(request.downloadHandler.text);
             string newToken = response.token;
-            
+
             PlayerPrefs.SetString("sessionEmail", newEmail);
             PlayerPrefs.SetString("sessionToken", newToken);
             if (PlayerPrefs.GetInt("rememberMe", 0) == 1)
@@ -252,10 +365,20 @@ public class MainMenuUIManager : MonoBehaviour
     {
         string token = PlayerPrefs.GetString("sessionToken", "");
 
+        if (string.IsNullOrEmpty(token))
+        {
+            Debug.LogError("JWT token is missing from PlayerPrefs.");
+            yield break;
+        }
+
         UnityWebRequest request = UnityWebRequest.Delete("http://localhost:3000/api/delete-account");
         request.SetRequestHeader("Authorization", "Bearer " + token);
 
         yield return request.SendWebRequest();
+
+        Debug.Log("Delete response code: " + request.responseCode);
+        Debug.Log("UnityWebRequest result: " + request.result);
+
 
         if (request.result == UnityWebRequest.Result.Success)
         {
@@ -274,6 +397,7 @@ public class MainMenuUIManager : MonoBehaviour
         {
             Debug.LogWarning("Failed to delete account: " + request.downloadHandler.text);
         }
+
     }
 
     public void OnChangePasswordCancelClicked()
@@ -369,4 +493,33 @@ public class MainMenuUIManager : MonoBehaviour
     }
 
 
+}
+
+
+[System.Serializable]
+public class ProjectBackend
+{
+    public string _id;
+    public string name;
+    public ProjectSaveData data;
+    public string userId;
+}
+
+[System.Serializable]
+public class ProjectBackendList
+{
+    public List<ProjectBackend> projects;
+}
+
+[System.Serializable]
+public class UserValidationResponse
+{
+    public UserInfo user;
+}
+
+[System.Serializable]
+public class UserInfo
+{
+    public string _id;
+    public string email;
 }

@@ -2,6 +2,10 @@ using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.SceneManagement;
 using TMPro;
+using System.Collections.Generic;
+using System.Collections;
+using System.Linq;
+using UnityEngine.Networking;
 
 
 public class InGameMenuManager : MonoBehaviour
@@ -28,6 +32,16 @@ public class InGameMenuManager : MonoBehaviour
 
     private bool isMenuOpen = false;
     private AudioSource musicSource;
+
+    [Header("Save Project")]
+    public GameObject saveProjectPanel;
+    public TMP_InputField projectNameInput;
+    public GameObject savedText;
+    public Button changeNameButton;
+
+    //private bool isEditingProjectName = false;
+
+
 
     void Start()
     {
@@ -66,7 +80,12 @@ public class InGameMenuManager : MonoBehaviour
             menuPanel.SetActive(isMenuOpen);
 
             if (isMenuOpen)
-            {
+            {   
+                GameObject existingPanel = GameObject.FindWithTag("EditorOnly");
+                if (existingPanel != null)
+                {
+                    Destroy(existingPanel);
+                }
                 settingsPanel.SetActive(false);
                 buttonsPanel.SetActive(true);
             }
@@ -86,8 +105,121 @@ public class InGameMenuManager : MonoBehaviour
 
     public void OnSaveProgressClicked()
     {
-        Debug.Log("TODO: Salvează progresul proiectului curent.");
+        string currentName = PlayerPrefs.GetString("projectName", "Unnamed Project");
+
+        projectNameInput.text = currentName;
+        projectNameInput.interactable = false;
+
+        buttonsPanel.SetActive(false);
+        saveProjectPanel.SetActive(true);
+        savedText.SetActive(false);
+
     }
+
+    public List<SceneObjectData> CollectAllSceneObjects()
+    {
+        List<SceneObjectData> dataList = new List<SceneObjectData>();
+
+        GameObject[] allObjects = Object.FindObjectsByType<GameObject>(FindObjectsSortMode.None);
+
+        foreach (GameObject obj in allObjects)
+        {
+            if (obj.name.Contains("FurnitureItemPrefab"))
+                continue;
+            if (obj.name.Contains("RoomButtonPrefab"))
+                continue;
+            if (obj.layer == LayerMask.NameToLayer("UI"))
+                continue;
+            if (obj.scene.IsValid() && obj.scene.isLoaded && IsSavable(obj))
+            {
+                dataList.Add(new SceneObjectData
+                {
+                    prefabName = obj.name.Replace("(Clone)", "").Trim(),
+                    position = obj.transform.position,
+                    rotation = obj.transform.rotation,
+                    scale = obj.transform.localScale
+                });
+            }
+        }
+
+        return dataList;
+    }
+
+    private bool IsSavable(GameObject obj)
+    {
+        string[] ignored = { "Canvas", "EventSystem", "Main Camera", "Directional Light", "GridManager", "GridLines", "MusicManager" };
+        return !ignored.Contains(obj.name) && obj.name.EndsWith("(Clone)");
+    }
+
+
+
+    public void OnChangeProjectNameClicked()
+    {
+        projectNameInput.interactable = true;
+        //isEditingProjectName = true;
+    }
+
+    public void OnBackFromSaveProject()
+    {
+        saveProjectPanel.SetActive(false);
+        savedText.SetActive(false);
+        buttonsPanel.SetActive(true);
+    }
+
+    public void OnSaveProjectNameConfirmed()
+    {
+        string newName = projectNameInput.text.Trim();
+
+        if (!string.IsNullOrEmpty(newName))
+        {
+            PlayerPrefs.SetString("projectName", newName);
+            PlayerPrefs.Save();
+            Debug.Log("Saved project name: " + newName);
+        }
+
+        savedText.SetActive(true);
+
+        ProjectSaveData saveData = new ProjectSaveData
+        {
+            projectName = newName,
+            objects = CollectAllSceneObjects()
+        };
+
+        ProjectWrapper wrapper = new ProjectWrapper
+        {
+            name = newName,
+            data = saveData
+        };
+
+        string json = JsonUtility.ToJson(wrapper, true);
+
+        StartCoroutine(SendProjectToBackend(json));
+    }
+
+    IEnumerator SendProjectToBackend(string json)
+    {
+        string url = "http://localhost:3000/api/projects/save";
+        string token = PlayerPrefs.GetString("sessionToken", "");
+
+        UnityWebRequest request = new UnityWebRequest(url, "POST");
+        byte[] bodyRaw = System.Text.Encoding.UTF8.GetBytes(json);
+        request.uploadHandler = new UploadHandlerRaw(bodyRaw);
+        request.downloadHandler = new DownloadHandlerBuffer();
+        request.SetRequestHeader("Content-Type", "application/json");
+        request.SetRequestHeader("Authorization", "Bearer " + token);
+
+        yield return request.SendWebRequest();
+
+        if (request.result == UnityWebRequest.Result.Success)
+        {
+            Debug.Log("Project saved to backend.");
+        }
+        else
+        {
+            Debug.LogWarning("Failed to save project: " + request.downloadHandler.text);
+        }
+    }
+
 
     public void OnSettingsClicked()
     {
@@ -130,4 +262,11 @@ public class InGameMenuManager : MonoBehaviour
             musicSource.volume = value / 100f;
     }
 
+}
+
+[System.Serializable]
+public class ProjectWrapper
+{
+    public string name;
+    public ProjectSaveData data;
 }
