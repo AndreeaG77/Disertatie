@@ -1,5 +1,4 @@
 using UnityEngine;
-using UnityEngine.EventSystems;
 
 public class Camera3DController : MonoBehaviour
 {
@@ -8,17 +7,22 @@ public class Camera3DController : MonoBehaviour
 
     private float rotationX = 0f;
     private float rotationY = 0f;
+    private Rigidbody rb;
 
     void Start()
     {
+        rb = GetComponent<Rigidbody>();
         Cursor.lockState = CursorLockMode.Confined;
         Cursor.visible = true;
     }
 
-    void Update()
+    void FixedUpdate()
     {
         HandleMovement();
+    }
 
+    void Update()
+    {
         if (Input.GetMouseButton(1))
         {
             HandleMouseLook();
@@ -33,8 +37,8 @@ public class Camera3DController : MonoBehaviour
         Vector3 forward = new Vector3(transform.forward.x, 0, transform.forward.z).normalized;
         Vector3 right = new Vector3(transform.right.x, 0, transform.right.z).normalized;
 
-        Vector3 move = forward * vertical + right * horizontal;
-        transform.position += move * moveSpeed * Time.deltaTime;
+        Vector3 move = (forward * vertical + right * horizontal) * moveSpeed;
+        rb.MovePosition(rb.position + move * Time.fixedDeltaTime);
     }
 
     void HandleMouseLook()
@@ -48,5 +52,4 @@ public class Camera3DController : MonoBehaviour
 
         transform.localRotation = Quaternion.Euler(rotationX, rotationY, 0f);
     }
-
 }

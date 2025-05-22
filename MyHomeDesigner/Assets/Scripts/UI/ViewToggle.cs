@@ -1,88 +1,137 @@
 using UnityEngine;
 using UnityEngine.UI;
+using System.Collections;
 
 public class ViewToggle : MonoBehaviour
 {
     public Button toggleButton;
-    public Transform camera2DPosition;
-    public Transform camera3DTarget;
-    //public FurnitureMenu furnitureMenu;
-    private bool is3DView = false;
+    public Transform camera2DPositionOriginal;
+    public Transform camera2DPositionMove;
     private Camera mainCamera;
     private CameraController cameraController;
-
 
     void Start()
     {
         mainCamera = Camera.main;
         cameraController = mainCamera.GetComponent<CameraController>();
-        toggleButton.onClick.AddListener(ToggleView);
+        toggleButton.onClick.AddListener(SwitchTo2D);
 
+        toggleButton.gameObject.SetActive(false);
     }
 
-    void ToggleView()
+    /* public void SwitchTo2D()
+     {
+         mainCamera.transform.position = camera2DPosition.position;
+         mainCamera.transform.rotation = camera2DPosition.rotation;
+
+         Camera.main.orthographic = true;
+         Camera.main.orthographicSize = 12.5f;
+         Camera.main.GetComponent<Camera3DController>().enabled = false;
+         Camera.main.GetComponent<CameraController>().enabled = true;
+
+         Cursor.lockState = CursorLockMode.None;
+         Cursor.visible = true;
+         ViewState.CurrentMode = ViewMode.Mode2D;
+
+         toggleButton.gameObject.SetActive(false);
+
+         foreach (var room in RoomManager.Instance.GetAllRooms())
+         {
+             foreach (Transform t in room.roomTransform.GetComponentsInChildren<Transform>(true))
+             {
+                 if (t.name.Contains("Floor"))
+                 {
+                     Renderer rend = t.GetComponent<Renderer>();
+                     if (rend != null && rend.material != null)
+                     {
+                         Color c = rend.material.color;
+                         c.a = 150 / 255f;
+                         rend.material.color = c;
+                     }
+                 }
+             }
+         }
+
+         FurnitureMenu furnitureMenu = Object.FindFirstObjectByType<FurnitureMenu>();
+         if (furnitureMenu != null)
+         {
+             furnitureMenu.RefreshUI();
+             furnitureMenu.RefreshCategoryButtons("2D");
+         }
+     }
+     */
+    
+    public void SwitchTo2D()
     {
-        is3DView = !is3DView;
+         StartCoroutine(SmoothTransitionTo2D());
+    }
 
-        if (is3DView)
+    private IEnumerator SmoothTransitionTo2D()
+    {
+        Camera.main.orthographic = false; 
+        Camera.main.GetComponent<Camera3DController>().enabled = false;
+        Camera.main.GetComponent<CameraController>().enabled = false;
+
+        Transform cam = Camera.main.transform;
+        Vector3 startPos = cam.position;
+        Quaternion startRot = cam.rotation;
+        Vector3 endPos = camera2DPositionOriginal.position;
+        Quaternion endRot = camera2DPositionOriginal.rotation;
+
+        float duration = 1.5f;
+        float t = 0f;
+
+        while (t < duration)
         {
-            cameraController.enabled = false;
-
-            mainCamera.transform.position = camera3DTarget.position + new Vector3(-3f, 3f, -3f);
-            mainCamera.transform.LookAt(camera3DTarget);
-            ViewState.CurrentMode = ViewMode.Mode3D;
-            FurnitureMenu furnitureMenu = Object.FindFirstObjectByType<FurnitureMenu>();
-            if (furnitureMenu != null)
-            {
-                furnitureMenu.RefreshUI();
-                furnitureMenu.RefreshCategoryButtons("3D");
-            }
-            toggleButton.GetComponentInChildren<TMPro.TextMeshProUGUI>().text = "2D";
+            t += Time.deltaTime;
+            float lerpT = t / duration;
+            cam.position = Vector3.Lerp(startPos, endPos, lerpT);
+            cam.rotation = Quaternion.Lerp(startRot, endRot, lerpT);
+            yield return null;
         }
-        else
+
+        cam.position = endPos;
+        cam.rotation = endRot;
+
+        Camera.main.orthographic = true;
+        Camera.main.orthographicSize = 10f;
+        Camera.main.GetComponent<CameraController>().enabled = true;
+
+        Cursor.lockState = CursorLockMode.None;
+        Cursor.visible = true;
+        ViewState.CurrentMode = ViewMode.Mode2D;
+
+        toggleButton.gameObject.SetActive(false); 
+
+        foreach (var room in RoomManager.Instance.GetAllRooms())
         {
-            mainCamera.transform.position = camera2DPosition.position;
-            mainCamera.transform.rotation = camera2DPosition.rotation;
-
-            Camera.main.orthographic = true;
-            Camera.main.orthographicSize = 12.5f;
-            Camera.main.GetComponent<Camera3DController>().enabled = false;
-            Camera.main.GetComponent<CameraController>().enabled = true;
-
-            Cursor.lockState = CursorLockMode.None;
-            Cursor.visible = true;
-            ViewState.CurrentMode = ViewMode.Mode2D;
-
-            // Reset floor albedo pentru toate camerele când revii în 2D
-            foreach (var room in RoomManager.Instance.GetAllRooms())
+            foreach (Transform obj in room.roomTransform.GetComponentsInChildren<Transform>(true))
             {
-                //Transform floor = room.GetComponentInChildren<Transform>(true);
-                foreach (Transform t in room.roomTransform.GetComponentsInChildren<Transform>(true))
+                if (obj.name.Contains("Floor"))
                 {
-                    if(t.name.Contains("Floor"))
+                    Renderer rend = obj.GetComponent<Renderer>();
+                    if (rend != null && rend.material != null)
                     {
-                        //Debug.Log("alooo?");
-                        Renderer rend = t.GetComponent<Renderer>();
-                        if (rend != null && rend.material != null)
-                        {
-                            Color c = rend.material.color;
-                            c.a = 150 / 255f;
-                            rend.material.color = c;
-                        }
+                        Color c = rend.material.color;
+                        c.a = 150 / 255f;
+                        rend.material.color = c;
                     }
                 }
             }
+        }
 
-
-            FurnitureMenu furnitureMenu = Object.FindFirstObjectByType<FurnitureMenu>();
-            if (furnitureMenu != null)
-            {
-                furnitureMenu.RefreshUI();
-                furnitureMenu.RefreshCategoryButtons("2D");
-            }
-            toggleButton.GetComponentInChildren<TMPro.TextMeshProUGUI>().text = "3D";
-
+        FurnitureMenu furnitureMenu = Object.FindFirstObjectByType<FurnitureMenu>();
+        if (furnitureMenu != null)
+        {
+            furnitureMenu.RefreshUI();
+            furnitureMenu.RefreshCategoryButtons("2D");
         }
     }
 
+
+    public void Show2DButton()
+    {
+        toggleButton.gameObject.SetActive(true);
+        toggleButton.GetComponentInChildren<TMPro.TextMeshProUGUI>().text = "2D";
+    }
 }

@@ -15,9 +15,10 @@ public class RoomButtonUI : MonoBehaviour
         GetComponentInChildren<TMPro.TextMeshProUGUI>().text = roomData.roomName;
 
 
-        GetComponent<Button>().onClick.AddListener(() =>
+        /*GetComponent<Button>().onClick.AddListener(() =>
         {
             StopAllCoroutines();
+            FindObjectOfType<ViewToggle>()?.Show2DButton();
             StartCoroutine(MoveCameraSmooth(
                 mainCamera.transform,
                 roomData.viewPosition,
@@ -25,19 +26,51 @@ public class RoomButtonUI : MonoBehaviour
                 1f,
                 roomData.roomTransform
             ));
+        });*/
+
+        GetComponent<Button>().onClick.AddListener(() =>
+        {
+            StopAllCoroutines();
+
+            if (ViewState.CurrentMode == ViewMode.Mode3D)
+            {
+                Transform camera2D = Object.FindFirstObjectByType<ViewToggle>().camera2DPositionMove;
+
+                StartCoroutine(MoveThrough2DView(
+                    mainCamera.transform,
+                    camera2D.position,
+                    camera2D.rotation,
+                    roomData.viewPosition,
+                    Quaternion.Euler(0f, 0f, 0f),
+                    1.5f,
+                    1.5f,
+                    roomData.roomTransform
+                ));
+            }
+            else
+            {
+                StartCoroutine(MoveCameraSmooth(
+                    mainCamera.transform,
+                    roomData.viewPosition,
+                    Quaternion.Euler(0f, 0f, 0f),
+                    1f,
+                    roomData.roomTransform
+                ));
+            }
         });
 
 
-       /* GetComponent<Button>().onClick.AddListener(() =>
-        {
-            //Vector3 eyeLevelOffset = new Vector3(0, 1.7f, 0);
-            //mainCamera.transform.position = targetRoom.position + eyeLevelOffset;
-            //mainCamera.transform.rotation = Quaternion.Euler(0f, 0f, 0f);
 
-            Vector3 offset = new Vector3(0f, 1.7f, -2f);
-            mainCamera.transform.position = targetRoom.position + offset;
-            mainCamera.transform.rotation = Quaternion.Euler(0f, 0f, 0f); 
-        });*/
+        /* GetComponent<Button>().onClick.AddListener(() =>
+           {
+               //Vector3 eyeLevelOffset = new Vector3(0, 1.7f, 0);
+               //mainCamera.transform.position = targetRoom.position + eyeLevelOffset;
+               //mainCamera.transform.rotation = Quaternion.Euler(0f, 0f, 0f);
+
+               Vector3 offset = new Vector3(0f, 1.7f, -2f);
+               mainCamera.transform.position = targetRoom.position + offset;
+               mainCamera.transform.rotation = Quaternion.Euler(0f, 0f, 0f); 
+           });*/
 
         /*GetComponent<Button>().onClick.AddListener(() =>
         {
@@ -94,29 +127,37 @@ public class RoomButtonUI : MonoBehaviour
         Camera.main.GetComponent<Camera3DController>().enabled = true;
         ViewState.CurrentMode = ViewMode.Mode3D;
 
+        ViewToggle toggle = FindFirstObjectByType<ViewToggle>();
+        if (toggle != null)
+        {
+            toggle.Show2DButton();
+        }
 
         //Transform floor = roomTransform.GetComponentInChildren<Transform>().Find("Floor");
         //Transform floor = roomTransform.GetComponentInChildren<Transform>(true);
-        foreach (Transform t in roomTransform.GetComponentsInChildren<Transform>(true))
+        if (roomTransform != null)
         {
-            if(t.name.Contains("Floor"))
+            foreach (Transform t in roomTransform.GetComponentsInChildren<Transform>(true))
             {
-                Renderer rend = t.GetComponent<Renderer>();
-                if (rend != null && rend.material != null)
+                if (t.name.Contains("Floor"))
                 {
-                    Color c = rend.material.color;
-                    c.a = 1f;
-                    rend.material.color = c;
+                    Renderer rend = t.GetComponent<Renderer>();
+                    if (rend != null && rend.material != null)
+                    {
+                        Color c = rend.material.color;
+                        c.a = 1f;
+                        rend.material.color = c;
+                    }
                 }
             }
         }
 
         FurnitureMenu furnitureMenu = Object.FindFirstObjectByType<FurnitureMenu>();
-            if (furnitureMenu != null)
-            {
-                furnitureMenu.RefreshUI();
-                furnitureMenu.RefreshCategoryButtons("3D");
-            }
+        if (furnitureMenu != null)
+        {
+            furnitureMenu.RefreshUI();
+            furnitureMenu.RefreshCategoryButtons("3D");
+        }
 
         Vector3 startPos = cam.position;
         Quaternion startRot = cam.rotation;
@@ -134,4 +175,15 @@ public class RoomButtonUI : MonoBehaviour
         cam.position = targetPos;
         cam.rotation = targetRot;
     }
+
+    private IEnumerator MoveThrough2DView(Transform cam, Vector3 to2DPos, Quaternion to2DRot,
+                                          Vector3 toRoomPos, Quaternion toRoomRot,
+                                          float duration1, float duration2,
+                                          Transform roomTransform)
+    {
+        yield return MoveCameraSmooth(cam, to2DPos, to2DRot, duration1, null);
+        yield return MoveCameraSmooth(cam, toRoomPos, toRoomRot, duration2, roomTransform);
+        
+    }
+
 }
