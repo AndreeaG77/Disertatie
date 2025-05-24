@@ -159,6 +159,12 @@ public class RoomButtonUI : MonoBehaviour
             furnitureMenu.RefreshCategoryButtons("3D");
         }
 
+        GameObject existingPanel = GameObject.FindWithTag("EditorOnly");
+        if (existingPanel != null)
+        {
+            Destroy(existingPanel);
+        }
+
         Vector3 startPos = cam.position;
         Quaternion startRot = cam.rotation;
         float time = 0f;

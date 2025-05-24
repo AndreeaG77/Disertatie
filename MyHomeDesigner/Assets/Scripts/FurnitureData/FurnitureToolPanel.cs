@@ -40,7 +40,7 @@ public class FurnitureToolPanel : MonoBehaviour
         if (targetObject != null)
         {
             Destroy(targetObject);
-            Destroy(gameObject); // distruge și UI-ul
+            Destroy(gameObject); 
         }
     }
 

@@ -5,9 +5,9 @@ using System.Collections;
 
 public class FurnitureDragHandler : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDragHandler
 {
-    public FurnitureItem furnitureItem; // Setat din MenuManager
-    public Image dragPreviewImage;      // Imaginea fantomă care urmărește cursorul
-    public Canvas canvas;               // Canvas-ul principal
+    public FurnitureItem furnitureItem; 
+    public Image dragPreviewImage;      
+    public Canvas canvas;              
     private GameObject previewInstance;
     public Material highlightMaterial;
     private GameObject highlightBox;
@@ -18,7 +18,7 @@ public class FurnitureDragHandler : MonoBehaviour, IBeginDragHandler, IDragHandl
         if (furnitureItem == null || furnitureItem.thumbnail == null)
             return;
 
-       // Creează o instanță fantomă
+
         previewInstance = Instantiate(furnitureItem.prefab);    
         previewInstance.layer = LayerMask.NameToLayer("Preview");
         foreach (Transform child in previewInstance.transform)
@@ -31,7 +31,7 @@ public class FurnitureDragHandler : MonoBehaviour, IBeginDragHandler, IDragHandl
         }
                 //SetTransparentMaterial(previewInstance);
         highlightBox = GameObject.CreatePrimitive(PrimitiveType.Cube);
-        Destroy(highlightBox.GetComponent<Collider>()); // nu vrem collider
+        Destroy(highlightBox.GetComponent<Collider>()); 
         highlightBox.name = "HighlightBox";
         highlightBox.GetComponent<MeshRenderer>().material = Instantiate(highlightMaterial);
         highlightBox.transform.SetParent(previewInstance.transform);
@@ -57,8 +57,13 @@ public class FurnitureDragHandler : MonoBehaviour, IBeginDragHandler, IDragHandl
 
         Vector3 pos = GetWorldPositionFromMouse();
 
+        //if (furnitureItem.placementType == PlacementType.Furniture)
+        //{
+        //    SnapPreviewToFloor();
+        //}
+
         // Aplica SnapToGrid doar pentru Room și Furniture
-        if (furnitureItem.placementType == PlacementType.Room || furnitureItem.placementType == PlacementType.Furniture)
+        if (furnitureItem.placementType == PlacementType.Room) //|| furnitureItem.placementType == PlacementType.Furniture)
         {
             pos = SnapToGrid(pos, 1f);
         }
@@ -103,11 +108,9 @@ public class FurnitureDragHandler : MonoBehaviour, IBeginDragHandler, IDragHandl
 
         if (room != null)
         {
-            // Așezăm pe podea
             float y = room.transform.position.y;
             pos.y = y;
 
-            // Verificăm coliziunea reală
             bool overlaps = IsFurnitureOverlapping(pos);
             valid = !overlaps;
         }
@@ -258,10 +261,14 @@ public class FurnitureDragHandler : MonoBehaviour, IBeginDragHandler, IDragHandl
     private Vector3 GetWorldPositionFromMouse()
     {
         Vector3 mousePos = Input.mousePosition;
-        mousePos.z = Camera.main.nearClipPlane + 10f; // distanță față de cameră
-        Vector3 worldPos = Camera.main.ScreenToWorldPoint(mousePos);
+        //mousePos.z = Camera.main.nearClipPlane + 10f; // distanță față de cameră
+        //Vector3 worldPos = Camera.main.ScreenToWorldPoint(mousePos);
         //worldPos.z = 0f; // asigură plasare pe planul corect
-        return worldPos;
+        //return worldPos;
+        float zOffset = ViewState.CurrentMode == ViewMode.Mode3D ? 4f : 12f;
+        mousePos.z = Camera.main.nearClipPlane + zOffset;
+
+        return Camera.main.ScreenToWorldPoint(mousePos);
     }
 
 
@@ -330,7 +337,7 @@ public class FurnitureDragHandler : MonoBehaviour, IBeginDragHandler, IDragHandl
 
         float y = room.transform.position.y;
         worldPos.y = y;
-        previewInstance.transform.position = worldPos;
+        //previewInstance.transform.position = worldPos;
 
 
         if (IsFurnitureOverlapping(worldPos))
@@ -341,7 +348,7 @@ public class FurnitureDragHandler : MonoBehaviour, IBeginDragHandler, IDragHandl
             return;
         }
 
-        GameObject instance = Instantiate(furnitureItem.prefab, worldPos, previewInstance.transform.rotation);
+        GameObject instance = Instantiate(furnitureItem.prefab, previewInstance.transform.position, previewInstance.transform.rotation);
         Rigidbody rb = instance.GetComponent<Rigidbody>();
 
         if (rb != null)
@@ -367,6 +374,23 @@ public class FurnitureDragHandler : MonoBehaviour, IBeginDragHandler, IDragHandl
         instance.AddComponent<SelectableFurniture>();
 
     }
+
+    private void SnapPreviewToFloor()
+    {
+        if (previewInstance == null)
+            return;
+
+        Vector3 origin = previewInstance.transform.position + Vector3.up * 1f;
+        Ray downRay = new Ray(origin, Vector3.down);
+
+        if (Physics.Raycast(downRay, out RaycastHit hit, 5f, LayerMask.GetMask("Floor")))
+        {
+            Vector3 snappedPosition = previewInstance.transform.position;
+            snappedPosition.y = hit.point.y;
+            previewInstance.transform.position = snappedPosition;
+        }
+    }
+
 
     IEnumerator SetKinematicAfterLanding(Rigidbody rb)
     {
@@ -565,13 +589,53 @@ public class FurnitureDragHandler : MonoBehaviour, IBeginDragHandler, IDragHandl
 
     private GameObject GetRoomUnderCursor(Vector3 pos)
     {
-        Ray ray = new Ray(pos + Vector3.up * 5f, Vector3.down); // Tragem o rază în jos
-        if (Physics.Raycast(ray, out RaycastHit hit, 10f, LayerMask.GetMask("Room")))
+        Ray ray = new Ray(pos + Vector3.up * 5f, Vector3.down); 
+        //mask = (LayerMask.GetMask("Room") || LayerMask.GetMask("Floor"));
+        if (Physics.Raycast(ray, out RaycastHit hit, 10f, (LayerMask.GetMask("Room"))))
         {
             return hit.collider.gameObject;
         }
         return null;
     }
+
+    /*private GameObject GetRoomUnderCursor(Vector3 pos)
+    {
+        int combinedLayerMask = LayerMask.GetMask("Room", "Floor");
+        Ray ray = new Ray(pos + Vector3.up * 0.5f, Vector3.down);
+        if (Physics.Raycast(ray, out RaycastHit hit, 1f, combinedLayerMask))
+        {
+            return hit.collider.gameObject;
+        }
+        Collider[] hits = Physics.OverlapSphere(pos, 0.25f, combinedLayerMask);
+        if (hits.Length > 0)
+        {
+            return hits[0].gameObject;
+        }
+
+        return null;
+    }*/
+
+    /*private GameObject GetRoomUnderCursor(GameObject previewObj)
+    {
+        float boundsBottomY = previewObj.GetComponent<Renderer>().bounds.min.y;
+        Vector3 rayOrigin = new Vector3(previewObj.transform.position.x, boundsBottomY + 0.1f, previewObj.transform.position.z);
+
+        Ray ray = new Ray(rayOrigin, Vector3.down);
+        int mask = LayerMask.GetMask("Floor", "Room");
+
+        if (Physics.Raycast(ray, out RaycastHit hit, 0.2f, mask))
+        {
+            // Obiectul este deasupra podelei și NU îngropat în ea
+            if (Mathf.Abs(hit.point.y - boundsBottomY) < 0.05f)
+            {
+                return hit.collider.gameObject;
+            }
+        }
+
+        return null;
+    }*/
+
+
 
     /*private GameObject GetWallUnderCursor(Vector3 pos)
     {

@@ -68,7 +68,7 @@ public class ViewToggle : MonoBehaviour
 
     private IEnumerator SmoothTransitionTo2D()
     {
-        Camera.main.orthographic = false; 
+        Camera.main.orthographic = false;
         Camera.main.GetComponent<Camera3DController>().enabled = false;
         Camera.main.GetComponent<CameraController>().enabled = false;
 
@@ -101,7 +101,7 @@ public class ViewToggle : MonoBehaviour
         Cursor.visible = true;
         ViewState.CurrentMode = ViewMode.Mode2D;
 
-        toggleButton.gameObject.SetActive(false); 
+        toggleButton.gameObject.SetActive(false);
 
         foreach (var room in RoomManager.Instance.GetAllRooms())
         {
@@ -125,6 +125,12 @@ public class ViewToggle : MonoBehaviour
         {
             furnitureMenu.RefreshUI();
             furnitureMenu.RefreshCategoryButtons("2D");
+        }
+        
+        GameObject existingPanel = GameObject.FindWithTag("EditorOnly");
+        if (existingPanel != null)
+        {
+            Destroy(existingPanel);
         }
     }
 

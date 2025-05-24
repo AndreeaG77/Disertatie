@@ -94,10 +94,8 @@ public class FurnitureMenu : MonoBehaviour
 
     public void RefreshUI()
     {
-        // Refacem lista completă, filtrată de FurnitureManager
         allFurnitureItems = FurnitureManager.Instance.GetAllFurniture();
 
-        // Afișăm din nou, luând în calcul search-ul curent (dacă există)
         if (!string.IsNullOrEmpty(searchInputField.text))
         {
             OnSearchValueChanged(searchInputField.text);
