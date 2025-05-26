@@ -62,7 +62,6 @@ public class FurnitureDragHandler : MonoBehaviour, IBeginDragHandler, IDragHandl
         //    SnapPreviewToFloor();
         //}
 
-        // Aplica SnapToGrid doar pentru Room și Furniture
         if (furnitureItem.placementType == PlacementType.Room) //|| furnitureItem.placementType == PlacementType.Furniture)
         {
             pos = SnapToGrid(pos, 1f);
@@ -103,16 +102,28 @@ public class FurnitureDragHandler : MonoBehaviour, IBeginDragHandler, IDragHandl
 
     private void UpdateFurnitureHighlight(Vector3 pos)
     {
-        GameObject room = GetRoomUnderCursor(pos);
         bool valid = false;
 
-        if (room != null)
+        if (ViewState.CurrentMode == ViewMode.Mode2D)
         {
-            float y = room.transform.position.y;
-            pos.y = y;
+            GameObject room = GetRoomUnderCursor(pos);
+            if (room != null)
+            {
+                float y = room.transform.position.y;
+                pos.y = y;
 
-            bool overlaps = IsFurnitureOverlapping(pos);
-            valid = !overlaps;
+                bool overlaps = IsFurnitureOverlapping(pos);
+                valid = !overlaps;
+            }
+        }
+        else
+        {
+            GameObject room = GetRoomUnderCursor3D(pos);
+            if (room != null)
+            {
+                bool overlaps = IsFurnitureOverlapping(pos);
+                valid = !overlaps;
+            }
         }
 
         if (highlightBox != null)
@@ -121,60 +132,6 @@ public class FurnitureDragHandler : MonoBehaviour, IBeginDragHandler, IDragHandl
             highlightBox.GetComponent<MeshRenderer>().material.color = color;
         }
     }
-
-    /*private void UpdateDoorHighlight(Vector3 pos)
-    {
-        GameObject wall = GetWallUnderCursor(pos);
-        bool valid = false;
-
-        if (wall != null)
-        {
-            // Snap poziția ușii pe perete
-            Vector3 snapPos = GetSnappedDoorPosition(wall, pos);
-            previewInstance.transform.position = snapPos;
-
-            // Verifică coliziune
-            valid = !IsFurnitureOverlapping(snapPos);
-        }
-
-        if (highlightBox != null)
-        {
-            Color color = valid ? new Color(1f, 1f, 1f, 0.3f) : new Color(1f, 0f, 0f, 0.3f);
-            highlightBox.GetComponent<MeshRenderer>().material.color = color;
-        }
-    }*/
-
-    /*private void UpdateDoorHighlight(Vector3 pos)
-    {
-        GameObject wall = GetWallUnderCursor(pos);
-        bool valid = false;
-
-        if (wall != null)
-        {
-            // Snap poziția ușii pe perete
-            Vector3 snapPos = GetSnappedDoorPosition(wall, pos);
-            previewInstance.transform.position = snapPos;
-
-            // Verifică coliziune
-            valid = !IsFurnitureOverlapping(snapPos);
-
-            if (valid)
-                validWallForDoor = wall; // salvăm peretele doar dacă totul e valid
-            else
-                validWallForDoor = null;
-        }
-        else
-        {
-            validWallForDoor = null; // niciun perete detectat
-        }
-
-        if (highlightBox != null)
-        {
-            Color color = valid ? new Color(1f, 1f, 1f, 0.3f) : new Color(1f, 0f, 0f, 0.3f);
-            highlightBox.GetComponent<MeshRenderer>().material.color = color;
-        }
-    }*/
-
     private void UpdateDoorHighlight(Vector3 pos)
     {
         GameObject wall = GetWallUnderCursor(pos);
@@ -182,7 +139,6 @@ public class FurnitureDragHandler : MonoBehaviour, IBeginDragHandler, IDragHandl
 
         if (wall != null)
         {
-            // ROTIRE AUTOMATĂ ÎN FUNCȚIE DE PERETE
             Vector3 wallForward = wall.transform.forward;
             Vector3 doorForward = previewInstance.transform.forward;
             float angle = Vector3.Angle(wallForward, doorForward);
@@ -192,11 +148,9 @@ public class FurnitureDragHandler : MonoBehaviour, IBeginDragHandler, IDragHandl
                 previewInstance.transform.rotation *= Quaternion.Euler(0f, 90f, 0f);
             }
 
-            // Snap poziția ușii pe perete
             Vector3 snapPos = GetSnappedDoorPosition(wall, pos);
             previewInstance.transform.position = snapPos;
 
-            // Verifică coliziune
             valid = !IsFurnitureOverlapping(snapPos);
 
             if (valid)
@@ -223,7 +177,6 @@ public class FurnitureDragHandler : MonoBehaviour, IBeginDragHandler, IDragHandl
 
         if (wall != null)
         {
-            // ROTIRE AUTOMATĂ ÎN FUNCȚIE DE PERETE
             Vector3 wallForward = wall.transform.forward;
             Vector3 doorForward = previewInstance.transform.forward;
             float angle = Vector3.Angle(wallForward, doorForward);
@@ -233,11 +186,9 @@ public class FurnitureDragHandler : MonoBehaviour, IBeginDragHandler, IDragHandl
                 previewInstance.transform.rotation *= Quaternion.Euler(0f, 90f, 0f);
             }
 
-            // Snap poziția ușii pe perete
             Vector3 snapPos = GetSnappedWindowPosition(wall, pos);
             previewInstance.transform.position = snapPos;
 
-            // Verifică coliziune
             valid = !IsFurnitureOverlapping(snapPos);
 
             if (valid)
@@ -325,8 +276,16 @@ public class FurnitureDragHandler : MonoBehaviour, IBeginDragHandler, IDragHandl
     private void PlaceFurniture()
     {
         Vector3 worldPos = previewInstance.transform.position;
+        GameObject room;
+        if (ViewState.CurrentMode == ViewMode.Mode2D)
+        {
+            room = GetRoomUnderCursor(worldPos);
+        }
+        else
+        {
+            room = GetRoomUnderCursor3D(worldPos);
+        }
 
-        GameObject room = GetRoomUnderCursor(worldPos);
         if (room == null)
         {
             Debug.Log("Mobilierul trebuie să fie plasat într-o cameră.");
@@ -337,8 +296,6 @@ public class FurnitureDragHandler : MonoBehaviour, IBeginDragHandler, IDragHandl
 
         float y = room.transform.position.y;
         worldPos.y = y;
-        //previewInstance.transform.position = worldPos;
-
 
         if (IsFurnitureOverlapping(worldPos))
         {
@@ -504,88 +461,15 @@ public class FurnitureDragHandler : MonoBehaviour, IBeginDragHandler, IDragHandl
         int mask = ~(1 << previewLayer);
 
         return Physics.CheckBox(checkCenter, checkSize, previewInstance.transform.rotation, mask);
-    }
-
-    /*private bool IsFurnitureOverlapping(Vector3 pos)
-    {
-        Bounds bounds = GetPrefabBounds(previewInstance);
-        Vector3 checkSize = bounds.extents;
-        Vector3 checkCenter = pos + bounds.center - previewInstance.transform.position;
-
-        int previewLayer = LayerMask.NameToLayer("Preview");
-        int roomLayer = LayerMask.NameToLayer("Room");
-        int mask = ~( (1 << previewLayer) | (1 << roomLayer) );
-
-        return Physics.CheckBox(checkCenter, checkSize, previewInstance.transform.rotation, mask);
-    }*/
-
-    /*bool IsFurnitureOverlapping(Vector3 position)
-    {
-        int ignoreMask = LayerMask.GetMask("Room", "Floor", "Preview");
-        int mask = ~ignoreMask;
-        Vector3 halfExtents = furnitureItem.prefab.GetComponent<Renderer>().bounds.extents;
-        Collider[] hits = Physics.OverlapBox(position, halfExtents, Quaternion.identity, mask);
-
-        foreach (var hit in hits)
-        {
-            if (hit.gameObject.name.Contains("Dulap"))
-            {
-                Debug.Log("il vede sau nu??");
-                return true;
-            }
-        }
-        return false;
-    }*/
-    
+    }    
     bool IsFurnitureOverlapping(Vector3 position)
     {
         Ray ray = new Ray(position + Vector3.up * 3f, Vector3.down);
-        float distance = 10f;
+        float distance = 3.5f;
         int furnitureMask = LayerMask.GetMask("Furniture");
 
         return Physics.Raycast(ray, distance, furnitureMask);
     }
-
-
-    /*bool IsRaycastHittingFurniture(GameObject prefab, Vector3 position)
-    {
-        Renderer renderer = prefab.GetComponentInChildren<Renderer>();
-        if (renderer == null)
-        {
-            Debug.LogWarning("Prefabul nu are Renderer!");
-            return false;
-        }
-
-        Vector3 extents = renderer.bounds.extents;
-        float heightOffset = 2f; 
-        float castDistance = 5f;
-
-        Vector3[] offsets = new Vector3[]
-        {
-            Vector3.zero,
-            new Vector3(extents.x, 0, extents.z),
-            new Vector3(-extents.x, 0, extents.z),
-            new Vector3(extents.x, 0, -extents.z),
-            new Vector3(-extents.x, 0, -extents.z)
-        };
-
-        int furnitureMask = LayerMask.GetMask("Furniture");
-
-        foreach (var offset in offsets)
-        {
-            Vector3 rayOrigin = position + offset + Vector3.up * heightOffset;
-
-            if (Physics.Raycast(rayOrigin, Vector3.down, castDistance, furnitureMask))
-            {
-                Debug.DrawRay(rayOrigin, Vector3.down * castDistance, Color.red, 1f);
-                return true;
-            }
-        }
-
-        return false;
-    }*/
-
-
 
     private GameObject GetRoomUnderCursor(Vector3 pos)
     {
@@ -598,44 +482,23 @@ public class FurnitureDragHandler : MonoBehaviour, IBeginDragHandler, IDragHandl
         return null;
     }
 
-    /*private GameObject GetRoomUnderCursor(Vector3 pos)
+
+    private GameObject GetRoomUnderCursor3D(Vector3 worldPos)
     {
-        int combinedLayerMask = LayerMask.GetMask("Room", "Floor");
-        Ray ray = new Ray(pos + Vector3.up * 0.5f, Vector3.down);
-        if (Physics.Raycast(ray, out RaycastHit hit, 1f, combinedLayerMask))
+        Collider[] overlapping = Physics.OverlapBox(
+            worldPos,
+            previewInstance.GetComponent<Renderer>().bounds.extents,
+            Quaternion.identity,
+            LayerMask.GetMask("Wall", "Floor")
+        );
+
+        if (overlapping.Length > 0)
         {
-            return hit.collider.gameObject;
-        }
-        Collider[] hits = Physics.OverlapSphere(pos, 0.25f, combinedLayerMask);
-        if (hits.Length > 0)
-        {
-            return hits[0].gameObject;
-        }
-
-        return null;
-    }*/
-
-    /*private GameObject GetRoomUnderCursor(GameObject previewObj)
-    {
-        float boundsBottomY = previewObj.GetComponent<Renderer>().bounds.min.y;
-        Vector3 rayOrigin = new Vector3(previewObj.transform.position.x, boundsBottomY + 0.1f, previewObj.transform.position.z);
-
-        Ray ray = new Ray(rayOrigin, Vector3.down);
-        int mask = LayerMask.GetMask("Floor", "Room");
-
-        if (Physics.Raycast(ray, out RaycastHit hit, 0.2f, mask))
-        {
-            // Obiectul este deasupra podelei și NU îngropat în ea
-            if (Mathf.Abs(hit.point.y - boundsBottomY) < 0.05f)
-            {
-                return hit.collider.gameObject;
-            }
+            return null;
         }
 
-        return null;
-    }*/
-
-
+        return RoomManager.Instance.GetRoomByIndex(0).roomTransform.gameObject;;
+    }
 
     /*private GameObject GetWallUnderCursor(Vector3 pos)
     {
@@ -662,121 +525,6 @@ public class FurnitureDragHandler : MonoBehaviour, IBeginDragHandler, IDragHandl
         return null;
     }
 
-
-    /*private Vector3 GetSnappedDoorPosition(GameObject wall, Vector3 originalPos)
-    {
-        Bounds bounds = wall.GetComponent<Renderer>().bounds;
-
-        Vector3 snapPos = bounds.center;
-        Vector3 dir = (originalPos - bounds.center).normalized;
-
-        float offset = 0.01f; // mic offset să nu intre în perete
-
-        if (Mathf.Abs(dir.x) > Mathf.Abs(dir.z))
-        {
-            // Atașează ușa de fața laterală a peretelui
-            snapPos.x += Mathf.Sign(dir.x) * (bounds.extents.x + previewInstance.GetComponent<Renderer>().bounds.extents.x + offset);
-            snapPos.z = originalPos.z;
-        }
-        else
-        {
-            // Atașează ușa de fața frontală a peretelui
-            snapPos.z += Mathf.Sign(dir.z) * (bounds.extents.z + previewInstance.GetComponent<Renderer>().bounds.extents.z + offset);
-            snapPos.x = originalPos.x;
-        }
-
-        snapPos.y = wall.transform.position.y; // așezăm la bază
-
-        return snapPos;
-    }*/
-
-    /*private Vector3 GetSnappedDoorPosition(GameObject wall, Vector3 originalPos)
-    {
-        Bounds bounds = wall.GetComponent<Renderer>().bounds;
-        Vector3 snapPos = originalPos; // păstrăm poziția originală
-
-        float offset = 0.01f;
-        Vector3 dir = (originalPos - bounds.center).normalized;
-
-        // Determinăm direcția dominantă a peretelui (x sau z)
-        bool isWallAlongX = bounds.size.x > bounds.size.z;
-
-        if (isWallAlongX)
-        {
-            // Peretele e de-a lungul axei X → blocăm Z
-            snapPos.z = bounds.center.z + Mathf.Sign(dir.z) * (bounds.extents.z + previewInstance.GetComponent<Renderer>().bounds.extents.z + offset);
-        }
-        else
-        {
-            // Peretele e de-a lungul axei Z → blocăm X
-            snapPos.x = bounds.center.x + Mathf.Sign(dir.x) * (bounds.extents.x + previewInstance.GetComponent<Renderer>().bounds.extents.x + offset);
-        }
-
-        // Aliniază la bază
-        snapPos.y = wall.transform.position.y;
-
-        return snapPos;
-    }*/
-
-   /* private Vector3 GetSnappedDoorPosition(GameObject wall, Vector3 originalPos)
-    {
-        Bounds bounds = wall.GetComponent<Renderer>().bounds;
-        Vector3 snapPos = originalPos;
-    
-        float offset = 0.01f;
-        Vector3 dir = (originalPos - bounds.center).normalized;
-    
-        // Determină axa dominantă a peretelui
-        bool isWallAlongX = bounds.size.x > bounds.size.z;
-    
-        // Luăm dimensiunea ușii cu rotația luată în calcul
-        BoxCollider doorCollider = previewInstance.GetComponent<BoxCollider>();
-        Vector3 doorSizeWorld = Vector3.Scale(doorCollider.size, previewInstance.transform.lossyScale);
-        Vector3 doorExtents = doorSizeWorld * 0.5f;
-    
-        if (isWallAlongX)
-        {
-            // Ușa se atașează pe Z
-            snapPos.z = bounds.center.z + Mathf.Sign(dir.z) * (bounds.extents.z + doorExtents.z + offset);
-        }
-        else
-        {
-            // Ușa se atașează pe X
-            snapPos.x = bounds.center.x + Mathf.Sign(dir.x) * (bounds.extents.x + doorExtents.x + offset);
-        }
-    
-        snapPos.y = wall.transform.position.y;
-        return snapPos;
-    }*/
-
-    /*private Vector3 GetSnappedDoorPosition(GameObject wall, Vector3 originalPos)
-    {
-        Bounds wallBounds = wall.GetComponent<Renderer>().bounds;
-        Bounds doorBounds = previewInstance.GetComponent<Renderer>().bounds;
-
-        Vector3 snapPos = originalPos;
-
-        float offset = 0.001f; // mai mic, să nu o arunce prea departe
-        Vector3 dir = (originalPos - wallBounds.center).normalized;
-
-        bool isWallAlongX = wallBounds.size.x > wallBounds.size.z;
-
-        if (isWallAlongX)
-        {
-            // Peretele este orizontal (X major), deci blocăm Z
-            snapPos.z = wallBounds.center.z + Mathf.Sign(dir.z) * (wallBounds.extents.z + doorBounds.extents.z) + Mathf.Sign(dir.z) * offset;
-        }
-        else
-        {
-            // Peretele este vertical (Z major), deci blocăm X
-            snapPos.x = wallBounds.center.x + Mathf.Sign(dir.x) * (wallBounds.extents.x + doorBounds.extents.x) + Mathf.Sign(dir.x) * offset;
-        }
-
-        snapPos.y = wall.transform.position.y; // aliniere pe podea
-
-        return snapPos;
-    }*/
-
     private Vector3 GetSnappedDoorPosition(GameObject wall, Vector3 originalPos)
     {
         Bounds wallBounds = wall.GetComponent<Renderer>().bounds;
@@ -790,7 +538,6 @@ public class FurnitureDragHandler : MonoBehaviour, IBeginDragHandler, IDragHandl
 
         if (wallIsAlongX)
         {
-            // Plasăm ușa lipită de fața frontală a peretelui (Z)
             float doorHalfDepth = doorBounds.extents.z;
             float wallFaceZ = wallBounds.center.z + Mathf.Sign(dir.z) * wallBounds.extents.z;
 
@@ -799,7 +546,6 @@ public class FurnitureDragHandler : MonoBehaviour, IBeginDragHandler, IDragHandl
         }
         else
         {
-            // Plasăm ușa lipită de fața laterală a peretelui (X)
             float doorHalfWidth = doorBounds.extents.x;
             float wallFaceX = wallBounds.center.x + Mathf.Sign(dir.x) * wallBounds.extents.x;
 
@@ -807,7 +553,6 @@ public class FurnitureDragHandler : MonoBehaviour, IBeginDragHandler, IDragHandl
             snapPos.z = Mathf.Clamp(originalPos.z, wallBounds.min.z + doorBounds.extents.z, wallBounds.max.z - doorBounds.extents.z);
         }
     
-        // Așezăm pe podea (presupunem baza la poziția Y a peretelui)
         snapPos.y = wall.transform.position.y;
     
         return snapPos;
@@ -826,7 +571,6 @@ public class FurnitureDragHandler : MonoBehaviour, IBeginDragHandler, IDragHandl
 
         if (wallIsAlongX)
         {
-            // Plasăm ușa lipită de fața frontală a peretelui (Z)
             float doorHalfDepth = doorBounds.extents.z;
             float wallFaceZ = wallBounds.center.z + Mathf.Sign(dir.z) * wallBounds.extents.z;
 
@@ -835,21 +579,16 @@ public class FurnitureDragHandler : MonoBehaviour, IBeginDragHandler, IDragHandl
         }
         else
         {
-            // Plasăm ușa lipită de fața laterală a peretelui (X)
             float doorHalfWidth = doorBounds.extents.x;
             float wallFaceX = wallBounds.center.x + Mathf.Sign(dir.x) * wallBounds.extents.x;
 
             snapPos.x = wallFaceX + Mathf.Sign(dir.x) * (doorHalfWidth + offset);
             snapPos.z = Mathf.Clamp(originalPos.z, wallBounds.min.z + doorBounds.extents.z, wallBounds.max.z - doorBounds.extents.z);
         }
-    
-        // Așezăm la mijlocul peretelui (presupunem baza la poziția Y a peretelui)
         snapPos.y = wall.transform.position.y + wall.GetComponent<Renderer>().bounds.size.y / 2f;
 
     
         return snapPos;
     }
-
-
 
 }

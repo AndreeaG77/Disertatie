@@ -162,6 +162,7 @@ public class RoomButtonUI : MonoBehaviour
         GameObject existingPanel = GameObject.FindWithTag("EditorOnly");
         if (existingPanel != null)
         {
+            FurnitureManipulator.Instance.ClearMode();
             Destroy(existingPanel);
         }
 

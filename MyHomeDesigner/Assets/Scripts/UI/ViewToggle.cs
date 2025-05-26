@@ -130,6 +130,7 @@ public class ViewToggle : MonoBehaviour
         GameObject existingPanel = GameObject.FindWithTag("EditorOnly");
         if (existingPanel != null)
         {
+            FurnitureManipulator.Instance.ClearMode();
             Destroy(existingPanel);
         }
     }

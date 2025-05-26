@@ -8,12 +8,12 @@ public class FurnitureManipulator : MonoBehaviour
     private GameObject selectedFurniture;
     public enum ManipulationMode { None, Move, Rotate, Scale, ScaleX, ScaleZ }
     private ManipulationMode currentMode = ManipulationMode.None;
-    
+
 
     public void SetMode(string mode, GameObject target)
     {
         selectedFurniture = target;
-    
+
         switch (mode)
         {
             case "Move": currentMode = ManipulationMode.Move; break;
@@ -35,12 +35,14 @@ public class FurnitureManipulator : MonoBehaviour
     public void SelectFurniture(GameObject furniture)
     {
         selectedFurniture = furniture;
+        //currentMode = ManipulationMode.None;
         Debug.Log("Mobilier selectat: " + furniture.name);
     }
 
     void Update()
     {
-        if (selectedFurniture == null) return;
+        if (selectedFurniture == null || currentMode == ManipulationMode.None)
+            return;
 
         switch (currentMode)
         {
@@ -54,10 +56,10 @@ public class FurnitureManipulator : MonoBehaviour
                 HandleScaling();
                 break;
             case ManipulationMode.ScaleX:
-                HandleAxisScaling(Vector3.right); 
+                HandleAxisScaling(Vector3.right);
                 break;
             case ManipulationMode.ScaleZ:
-                HandleAxisScaling(Vector3.forward); 
+                HandleAxisScaling(Vector3.forward);
                 break;
         }
     }
@@ -173,7 +175,7 @@ public class FurnitureManipulator : MonoBehaviour
             Vector3 scale = selectedFurniture.transform.localScale;
             scale += Vector3.one * scroll;
             scale = Vector3.Max(scale, Vector3.one * 0.2f);
-            scale = Vector3.Min(scale, Vector3.one * 5f); 
+            scale = Vector3.Min(scale, Vector3.one * 5f);
             selectedFurniture.transform.localScale = scale;
         }
     }
@@ -212,5 +214,11 @@ public class FurnitureManipulator : MonoBehaviour
             Mathf.Clamp(scale.z, min.z, max.z)
         );
     }
+    
+    public void ClearMode()
+    {
+        currentMode = ManipulationMode.None;
+    }
+
 
 }
