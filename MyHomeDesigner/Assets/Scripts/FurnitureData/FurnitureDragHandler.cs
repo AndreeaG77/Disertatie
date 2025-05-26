@@ -95,7 +95,8 @@ public class FurnitureDragHandler : MonoBehaviour, IBeginDragHandler, IDragHandl
 
         if (highlightBox != null)
         {
-            Color color = overlaps ? new Color(1f, 0f, 0f, 0.3f) : new Color(1f, 1f, 1f, 0.3f);
+            //Color color = overlaps ? new Color(1f, 0f, 0f, 0.3f) : new Color(1f, 1f, 1f, 0.3f);
+            Color color = overlaps ? new Color(1f, 0f, 0f, 0.3f) : new Color(0f, 1f, 0f, 0.3f);
             highlightBox.GetComponent<MeshRenderer>().material.color = color;
         }
     }
@@ -128,30 +129,43 @@ public class FurnitureDragHandler : MonoBehaviour, IBeginDragHandler, IDragHandl
 
         if (highlightBox != null)
         {
-            Color color = valid ? new Color(1f, 1f, 1f, 0.3f) : new Color(1f, 0f, 0f, 0.3f);
+            //Color color = valid ? new Color(1f, 1f, 1f, 0.3f) : new Color(1f, 0f, 0f, 0.3f);
+            Color color = valid ? new Color(0f, 1f, 0f, 0.3f) : new Color(1f, 0f, 0f, 0.3f);
             highlightBox.GetComponent<MeshRenderer>().material.color = color;
         }
     }
     private void UpdateDoorHighlight(Vector3 pos)
     {
-        GameObject wall = GetWallUnderCursor(pos);
         bool valid = false;
+        GameObject wall = GetWallUnderCursor(pos);
 
         if (wall != null)
         {
-            Vector3 wallForward = wall.transform.forward;
-            Vector3 doorForward = previewInstance.transform.forward;
-            float angle = Vector3.Angle(wallForward, doorForward);
+            // Snap și rotație
+            Vector3 snappedPos = GetSnappedDoorPosition(wall, pos);
+            previewInstance.transform.position = snappedPos;
+            previewInstance.transform.rotation = Quaternion.LookRotation(-wall.transform.forward);
 
-            if (angle > 45f && angle < 135f)
+            // Verificăm suprapunere cu uși/ferestre
+            Collider[] overlaps = Physics.OverlapBox(
+                previewInstance.transform.position,
+                previewInstance.GetComponent<Renderer>().bounds.extents,
+                previewInstance.transform.rotation
+                //LayerMask.GetMask("Furniture")
+            );
+
+            bool overlapWithDoorOrWindow = false;
+            foreach (var col in overlaps)
             {
-                previewInstance.transform.rotation *= Quaternion.Euler(0f, 90f, 0f);
+                int layer = col.gameObject.layer;
+                if (layer == LayerMask.NameToLayer("Door") || layer == LayerMask.NameToLayer("Window"))
+                {
+                    overlapWithDoorOrWindow = true;
+                    break;
+                }
             }
 
-            Vector3 snapPos = GetSnappedDoorPosition(wall, pos);
-            previewInstance.transform.position = snapPos;
-
-            valid = !IsFurnitureOverlapping(snapPos);
+            valid = !overlapWithDoorOrWindow;
 
             if (valid)
                 validWallForDoor = wall;
@@ -165,10 +179,14 @@ public class FurnitureDragHandler : MonoBehaviour, IBeginDragHandler, IDragHandl
 
         if (highlightBox != null)
         {
-            Color color = valid ? new Color(1f, 1f, 1f, 0.3f) : new Color(1f, 0f, 0f, 0.3f);
+            //Color color = valid ? new Color(1f, 1f, 1f, 0.3f) : new Color(1f, 0f, 0f, 0.3f);
+            Color color = valid ? new Color(0f, 1f, 0f, 0.3f) : new Color(1f, 0f, 0f, 0.3f);
             highlightBox.GetComponent<MeshRenderer>().material.color = color;
         }
+
     }
+
+
 
     private void UpdateWindowHighlight(Vector3 pos)
     {
@@ -203,7 +221,8 @@ public class FurnitureDragHandler : MonoBehaviour, IBeginDragHandler, IDragHandl
 
         if (highlightBox != null)
         {
-            Color color = valid ? new Color(1f, 1f, 1f, 0.3f) : new Color(1f, 0f, 0f, 0.3f);
+            //Color color = valid ? new Color(1f, 1f, 1f, 0.3f) : new Color(1f, 0f, 0f, 0.3f);
+            Color color = valid ? new Color(0f, 1f, 0f, 0.3f) : new Color(1f, 0f, 0f, 0.3f);
             highlightBox.GetComponent<MeshRenderer>().material.color = color;
         }
     }
@@ -359,38 +378,45 @@ public class FurnitureDragHandler : MonoBehaviour, IBeginDragHandler, IDragHandl
 
     private void PlaceDoor()
     {
-        Vector3 pos = previewInstance.transform.position;
-
-        GameObject room = GetRoomUnderCursor(pos);
-        if (room == null)
-        {
-            Debug.Log("Usa trebuie să fie plasat într-o cameră.");
-            Destroy(previewInstance);
-            if (highlightBox != null) Destroy(highlightBox);
+        if (previewInstance == null)
             return;
-        }
-
+    
         if (validWallForDoor == null)
         {
-            Debug.Log("Ușa trebuie să fie plasată pe un perete.");
+            Debug.Log("Nu există perete valid în spatele ușii.");
             Destroy(previewInstance);
             if (highlightBox != null) Destroy(highlightBox);
             return;
         }
-
-        Vector3 snappedPos = GetSnappedDoorPosition(validWallForDoor, pos);
-        if (IsFurnitureOverlapping(snappedPos))
+    
+        Vector3 pos = previewInstance.transform.position;
+    
+        Collider[] overlaps = Physics.OverlapBox(
+            pos,
+            previewInstance.GetComponent<Renderer>().bounds.extents,
+            previewInstance.transform.rotation
+        );
+    
+        foreach (var col in overlaps)
         {
-            Debug.Log("Ușa se suprapune cu alt obiect.");
-            Destroy(previewInstance);
-            if (highlightBox != null) Destroy(highlightBox);
-            return;
+            int layer = col.gameObject.layer;
+            if (layer == LayerMask.NameToLayer("Door") || layer == LayerMask.NameToLayer("Window"))
+            {
+                Debug.Log("Există deja o ușă sau fereastră în această poziție.");
+                Destroy(previewInstance);
+                if (highlightBox != null) Destroy(highlightBox);
+                return;
+            }
         }
-
-        Instantiate(furnitureItem.prefab, snappedPos, previewInstance.transform.rotation);
+    
+        GameObject instance = Instantiate(furnitureItem.prefab, pos, previewInstance.transform.rotation);
+        instance.layer = LayerMask.NameToLayer("Door"); // sau setează în editor direct
+    
         Destroy(previewInstance);
         if (highlightBox != null) Destroy(highlightBox);
     }
+
+
 
     private void PlaceWindow()
     {
@@ -552,8 +578,14 @@ public class FurnitureDragHandler : MonoBehaviour, IBeginDragHandler, IDragHandl
             snapPos.x = wallFaceX + Mathf.Sign(dir.x) * (doorHalfWidth + offset);
             snapPos.z = Mathf.Clamp(originalPos.z, wallBounds.min.z + doorBounds.extents.z, wallBounds.max.z - doorBounds.extents.z);
         }
-    
-        snapPos.y = wall.transform.position.y;
+
+        //snapPos.y = wall.transform.position.y;
+        // Plasare la nivel cu podeaua (baza peretelui)
+        float wallBottomY = wall.GetComponent<Renderer>().bounds.min.y;
+        float doorHalfHeight = previewInstance.GetComponent<Renderer>().bounds.extents.y;
+        
+        snapPos.y = wallBottomY + doorHalfHeight;
+
     
         return snapPos;
     }

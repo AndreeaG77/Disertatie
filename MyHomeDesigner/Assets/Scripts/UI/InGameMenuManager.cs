@@ -84,6 +84,7 @@ public class InGameMenuManager : MonoBehaviour
                 GameObject existingPanel = GameObject.FindWithTag("EditorOnly");
                 if (existingPanel != null)
                 {
+                    FurnitureManipulator.Instance.ClearMode();
                     Destroy(existingPanel);
                 }
                 settingsPanel.SetActive(false);
