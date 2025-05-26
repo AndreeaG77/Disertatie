@@ -15,6 +15,8 @@ public class FurnitureDragHandler : MonoBehaviour, IBeginDragHandler, IDragHandl
 
     public void OnBeginDrag(PointerEventData eventData)
     {
+        //FurnitureManipulator.Instance.ClearMode();
+
         if (furnitureItem == null || furnitureItem.thumbnail == null)
             return;
 
@@ -382,7 +384,7 @@ public class FurnitureDragHandler : MonoBehaviour, IBeginDragHandler, IDragHandl
     {
         if (previewInstance == null)
             return;
-    
+
         if (validWallForDoor == null)
         {
             Debug.Log("Nu există perete valid în spatele ușii.");
@@ -390,15 +392,15 @@ public class FurnitureDragHandler : MonoBehaviour, IBeginDragHandler, IDragHandl
             if (highlightBox != null) Destroy(highlightBox);
             return;
         }
-    
+
         Vector3 pos = previewInstance.transform.position;
-    
+
         Collider[] overlaps = Physics.OverlapBox(
             pos,
             previewInstance.GetComponent<Renderer>().bounds.extents,
             previewInstance.transform.rotation
         );
-    
+
         foreach (var col in overlaps)
         {
             int layer = col.gameObject.layer;
@@ -410,12 +412,14 @@ public class FurnitureDragHandler : MonoBehaviour, IBeginDragHandler, IDragHandl
                 return;
             }
         }
-    
+
         GameObject instance = Instantiate(furnitureItem.prefab, pos, previewInstance.transform.rotation);
         instance.layer = LayerMask.NameToLayer("Door"); // sau setează în editor direct
-    
+
         Destroy(previewInstance);
         if (highlightBox != null) Destroy(highlightBox);
+        
+        instance.AddComponent<SelectableFurniture>();
     }
 
 
@@ -458,6 +462,8 @@ public class FurnitureDragHandler : MonoBehaviour, IBeginDragHandler, IDragHandl
 
         Destroy(previewInstance);
         if (highlightBox != null) Destroy(highlightBox);
+
+        instance.AddComponent<SelectableFurniture>();
     }
 
 
@@ -551,11 +557,11 @@ public class FurnitureDragHandler : MonoBehaviour, IBeginDragHandler, IDragHandl
         Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition); // trage din camera, spre scenă
         if (Physics.Raycast(ray, out RaycastHit hit, 100f, LayerMask.GetMask("Wall")))
         {
-            Debug.Log("Perete detectat: " + hit.collider.name);
+            //Debug.Log("Perete detectat: " + hit.collider.name);
             return hit.collider.gameObject;
         }
 
-        Debug.Log("NU a fost detectat niciun perete");
+        //Debug.Log("NU a fost detectat niciun perete");
         return null;
     }
 

@@ -27,6 +27,13 @@ public class FurnitureSelector : MonoBehaviour
                     Debug.Log("Ai selectat mobilierul: " + hitInfo.collider.name);
                     FurnitureManipulator.Instance.SelectFurniture(hitInfo.collider.gameObject);
                 }*/
+                int layer = hitInfo.collider.gameObject.layer;
+                if (ViewState.CurrentMode == ViewMode.Mode2D &&
+                    (layer == LayerMask.NameToLayer("Door") || layer == LayerMask.NameToLayer("Window")))
+                {
+                    return;
+                }
+
                 GameObject hitObject = hitInfo.collider.gameObject;
 
                 if (hitObject != lastSelectedObject)

@@ -6,7 +6,7 @@ public class FurnitureManipulator : MonoBehaviour
     public static FurnitureManipulator Instance;
 
     private GameObject selectedFurniture;
-    public enum ManipulationMode { None, Move, Rotate, Scale, ScaleX, ScaleZ }
+    public enum ManipulationMode { None, Move, Rotate, Scale, ScaleX, ScaleY, ScaleZ }
     private ManipulationMode currentMode = ManipulationMode.None;
 
 
@@ -20,6 +20,7 @@ public class FurnitureManipulator : MonoBehaviour
             case "Rotate": currentMode = ManipulationMode.Rotate; break;
             case "Scale": currentMode = ManipulationMode.Scale; break;
             case "ScaleX": currentMode = ManipulationMode.ScaleX; break;
+            case "ScaleY": currentMode = ManipulationMode.ScaleY; break;
             case "ScaleZ": currentMode = ManipulationMode.ScaleZ; break;
             default: currentMode = ManipulationMode.None; break;
         }
@@ -32,12 +33,26 @@ public class FurnitureManipulator : MonoBehaviour
         else Destroy(gameObject);
     }
 
+    private string selectedType = "Furniture"; // Default
+
     public void SelectFurniture(GameObject furniture)
+    {
+        selectedFurniture = furniture;
+    
+        int layer = selectedFurniture.layer;
+        if (layer == LayerMask.NameToLayer("Door")) selectedType = "Door";
+        else if (layer == LayerMask.NameToLayer("Window")) selectedType = "Window";
+        else selectedType = "Furniture";
+    
+        Debug.Log("Mobilier selectat: " + furniture.name + " | Tip: " + selectedType);
+    }
+
+    /*public void SelectFurniture(GameObject furniture)
     {
         selectedFurniture = furniture;
         //currentMode = ManipulationMode.None;
         Debug.Log("Mobilier selectat: " + furniture.name);
-    }
+    }*/
 
     void Update()
     {
@@ -47,7 +62,12 @@ public class FurnitureManipulator : MonoBehaviour
         switch (currentMode)
         {
             case ManipulationMode.Move:
-                HandleMovement();
+                if (selectedType == "Door")
+                    HandleDoorMovementX();
+                else if (selectedType == "Window")
+                    HandleWindowMovement();
+                else
+                    HandleMovement();
                 break;
             case ManipulationMode.Rotate:
                 HandleRotation();
@@ -57,6 +77,9 @@ public class FurnitureManipulator : MonoBehaviour
                 break;
             case ManipulationMode.ScaleX:
                 HandleAxisScaling(Vector3.right);
+                break;
+            case ManipulationMode.ScaleY:
+                HandleAxisScaling(Vector3.up);
                 break;
             case ManipulationMode.ScaleZ:
                 HandleAxisScaling(Vector3.forward);
@@ -157,6 +180,135 @@ public class FurnitureManipulator : MonoBehaviour
         }
     }
 
+    void HandleDoorMovementX()
+    {
+        if (Input.GetMouseButton(0))
+        {
+            Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
+            int mask = ~(1 << LayerMask.NameToLayer("Room"));
+
+            if (Physics.Raycast(ray, out RaycastHit hit, 100f, mask))
+            {
+                if (hit.collider.gameObject != selectedFurniture)
+                    return;
+
+                Vector3 currentPos = selectedFurniture.transform.position;
+                Vector3 hitPoint = hit.point;
+
+                //targetPos.y = currentPos.y;    // Blochează Y
+                //targetPos.z = currentPos.z;    // Blochează Z
+                
+                bool wallIsAlongX = Mathf.Abs(selectedFurniture.transform.forward.z) > Mathf.Abs(selectedFurniture.transform.forward.x);
+
+                Vector3 targetPos = currentPos;
+
+                if (wallIsAlongX)
+                {
+                    targetPos.x = hitPoint.x;
+                }
+                else
+                {
+                    targetPos.z = hitPoint.z;
+                }
+
+                targetPos.y = currentPos.y;
+
+                BoxCollider col = selectedFurniture.GetComponent<BoxCollider>();
+                Vector3 size = Vector3.Scale(col.size, selectedFurniture.transform.lossyScale);
+                Vector3 halfExtents = size * 0.5f;
+
+                Collider[] hits = Physics.OverlapBox(
+                    targetPos,
+                    halfExtents,
+                    selectedFurniture.transform.rotation
+                );
+
+                foreach (var h in hits)
+                {
+                    if (h.gameObject != selectedFurniture)
+                    {
+                        int otherLayer = h.gameObject.layer;
+                        if (otherLayer == LayerMask.NameToLayer("Door") || otherLayer == LayerMask.NameToLayer("Window") || otherLayer == LayerMask.NameToLayer("Wall"))
+                        {
+                            Debug.Log("Ușa se suprapune cu altă ușă sau fereastră: " + h.name);
+                            return;
+                        }
+                    }
+                }
+
+                Rigidbody rb = selectedFurniture.GetComponent<Rigidbody>();
+                if (rb != null)
+                    rb.MovePosition(targetPos);
+                else
+                    selectedFurniture.transform.position = targetPos;
+            }
+        }
+    }
+
+    void HandleWindowMovement()
+    {
+        if (Input.GetMouseButton(0))
+        {
+            Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
+            int mask = ~(1 << LayerMask.NameToLayer("Room"));
+
+            if (Physics.Raycast(ray, out RaycastHit hit, 100f, mask))
+            {
+                if (hit.collider.gameObject != selectedFurniture)
+                    return;
+
+                Vector3 currentPos = selectedFurniture.transform.position;
+                Vector3 hitPoint = hit.point;
+
+                //targetPos.y = currentPos.y;    // Blochează Y
+                //targetPos.z = currentPos.z;    // Blochează Z
+                
+                bool wallIsAlongX = Mathf.Abs(selectedFurniture.transform.forward.z) > Mathf.Abs(selectedFurniture.transform.forward.x);
+
+                Vector3 targetPos = currentPos;
+
+                if (wallIsAlongX)
+                {
+                    targetPos.x = hitPoint.x;
+                }
+                else
+                {
+                    targetPos.z = hitPoint.z;
+                }
+
+                targetPos.y = hitPoint.y;
+
+                BoxCollider col = selectedFurniture.GetComponent<BoxCollider>();
+                Vector3 size = Vector3.Scale(col.size, selectedFurniture.transform.lossyScale);
+                Vector3 halfExtents = size * 0.5f;
+
+                Collider[] hits = Physics.OverlapBox(
+                    targetPos,
+                    halfExtents,
+                    selectedFurniture.transform.rotation
+                );
+
+                foreach (var h in hits)
+                {
+                    if (h.gameObject != selectedFurniture)
+                    {
+                        int otherLayer = h.gameObject.layer;
+                        if (otherLayer == LayerMask.NameToLayer("Door") || otherLayer == LayerMask.NameToLayer("Window") || otherLayer == LayerMask.NameToLayer("Wall") || otherLayer == LayerMask.NameToLayer("Floor"))
+                        {
+                            Debug.Log("Fereastra se suprapune cu altă ușă sau fereastră: " + h.name);
+                            return;
+                        }
+                    }
+                }
+
+                Rigidbody rb = selectedFurniture.GetComponent<Rigidbody>();
+                if (rb != null)
+                    rb.MovePosition(targetPos);
+                else
+                    selectedFurniture.transform.position = targetPos;
+            }
+        }
+    }
 
 
     void HandleRotation()
@@ -197,10 +349,25 @@ public class FurnitureManipulator : MonoBehaviour
         float scroll = Input.GetAxis("Mouse ScrollWheel");
         if (scroll != 0f)
         {
-            Vector3 scale = selectedFurniture.transform.localScale;
+            /*Vector3 scale = selectedFurniture.transform.localScale;
             scale += axis * scroll;
             scale = ClampScale(scale);
-            selectedFurniture.transform.localScale = scale;
+            selectedFurniture.transform.localScale = scale;*/
+
+            Vector3 oldScale = selectedFurniture.transform.localScale;
+            Vector3 newScale = oldScale + axis * scroll;
+
+            newScale = ClampScale(newScale);
+
+            selectedFurniture.transform.localScale = newScale;
+
+            if (axis == Vector3.up)
+            {
+                float deltaY = (oldScale.y - newScale.y) * 0.5f;
+                Vector3 pos = selectedFurniture.transform.position;
+                pos.y -= deltaY;
+                selectedFurniture.transform.position = pos;
+            }
         }
     }
 

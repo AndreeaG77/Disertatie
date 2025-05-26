@@ -7,6 +7,7 @@ public class FurnitureToolPanel : MonoBehaviour
     public Button rotateButton;
     public Button scaleButton;
     public Button scaleXButton;
+    public Button scaleYButton;
     public Button scaleZButton;
     public Button deleteButton;
 
@@ -16,15 +17,35 @@ public class FurnitureToolPanel : MonoBehaviour
     {
         targetObject = target;
 
+        int layer = target.layer;
+        bool isDoorOrWindow = false;
+        if ((layer == LayerMask.NameToLayer("Door")) || (layer == LayerMask.NameToLayer("Window")))
+            isDoorOrWindow = true;
+        //bool isDoor = layer == LayerMask.NameToLayer("Door");
 
-        moveButton.onClick.AddListener(() => FurnitureManipulator.Instance.SetMode("Move", targetObject));
+        moveButton.gameObject.SetActive(true);
+        rotateButton.gameObject.SetActive(!isDoorOrWindow); 
+        scaleButton.gameObject.SetActive(!isDoorOrWindow);   
+        scaleXButton.gameObject.SetActive(true);
+        if (ViewState.CurrentMode == ViewMode.Mode2D) scaleYButton.gameObject.SetActive(false); // sau true dacă vrei tot timpul
+        else scaleYButton.gameObject.SetActive(true);
+        scaleZButton.gameObject.SetActive(!isDoorOrWindow); 
+        deleteButton.gameObject.SetActive(true);
+
+        /*moveButton.onClick.AddListener(() => FurnitureManipulator.Instance.SetMode("Move", targetObject));
         rotateButton.onClick.AddListener(() => FurnitureManipulator.Instance.SetMode("Rotate", targetObject));
         scaleButton.onClick.AddListener(() => FurnitureManipulator.Instance.SetMode("Scale", targetObject));
         scaleXButton.onClick.AddListener(() => FurnitureManipulator.Instance.SetMode("ScaleX", targetObject));
         scaleZButton.onClick.AddListener(() => FurnitureManipulator.Instance.SetMode("ScaleZ", targetObject));
-        deleteButton.onClick.AddListener(() => DeleteObject());
+        deleteButton.onClick.AddListener(() => DeleteObject());*/
         
-        //FurnitureManipulator.Instance.ClearMode();
+        moveButton.onClick.AddListener(() => FurnitureManipulator.Instance.SetMode("Move", targetObject));
+        if (!isDoorOrWindow) rotateButton.onClick.AddListener(() => FurnitureManipulator.Instance.SetMode("Rotate", targetObject));
+        if (!isDoorOrWindow) scaleButton.onClick.AddListener(() => FurnitureManipulator.Instance.SetMode("Scale", targetObject));
+        scaleXButton.onClick.AddListener(() => FurnitureManipulator.Instance.SetMode("ScaleX", targetObject));
+        if (ViewState.CurrentMode == ViewMode.Mode3D) scaleYButton.onClick.AddListener(() => FurnitureManipulator.Instance.SetMode("ScaleY", targetObject));
+        if (!isDoorOrWindow) scaleZButton.onClick.AddListener(() => FurnitureManipulator.Instance.SetMode("ScaleZ", targetObject));
+        deleteButton.onClick.AddListener(() => DeleteObject());
     }
 
     /*void Update()
