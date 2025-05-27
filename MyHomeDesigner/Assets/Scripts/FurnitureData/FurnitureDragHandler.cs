@@ -525,8 +525,16 @@ public class FurnitureDragHandler : MonoBehaviour, IBeginDragHandler, IDragHandl
 
     private GameObject GetRoomUnderCursor3D(Vector3 worldPos)
     {
+        Bounds bounds = previewInstance.GetComponent<Renderer>().bounds;
+        Vector3 extents = bounds.extents;
+
+        
+        Vector3 offsetPos = worldPos + Vector3.up * extents.y + Vector3.up * 0.01f;
+
+        //Vector3 offsetPos = worldPos + Vector3.up * 0.5f;
+
         Collider[] overlapping = Physics.OverlapBox(
-            worldPos,
+            offsetPos,
             previewInstance.GetComponent<Renderer>().bounds.extents,
             Quaternion.identity,
             LayerMask.GetMask("Wall", "Floor")
@@ -534,6 +542,7 @@ public class FurnitureDragHandler : MonoBehaviour, IBeginDragHandler, IDragHandl
 
         if (overlapping.Length > 0)
         {
+            //Debug.Log("Atinge perete sau podea: " + overlapping[0].name);
             return null;
         }
 
@@ -595,11 +604,13 @@ public class FurnitureDragHandler : MonoBehaviour, IBeginDragHandler, IDragHandl
 
         //snapPos.y = wall.transform.position.y;
         // Plasare la nivel cu podeaua (baza peretelui)
-        float wallBottomY = wall.GetComponent<Renderer>().bounds.min.y;
-        float doorHalfHeight = previewInstance.GetComponent<Renderer>().bounds.extents.y;
+        //float wallBottomY = wall.GetComponent<Renderer>().bounds.min.y;
+        //float doorHalfHeight = previewInstance.GetComponent<Renderer>().bounds.extents.y;
 
-        snapPos.y = wallBottomY + doorHalfHeight;
+        //snapPos.y = wallBottomY + doorHalfHeight;
 
+        float doorBottomOffset = previewInstance.GetComponent<Renderer>().bounds.min.y - previewInstance.transform.position.y;
+        snapPos.y = wall.GetComponent<Renderer>().bounds.min.y - doorBottomOffset;
     
         return snapPos;
     }

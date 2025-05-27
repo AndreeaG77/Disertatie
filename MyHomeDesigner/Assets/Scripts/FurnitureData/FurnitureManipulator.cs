@@ -379,12 +379,31 @@ public class FurnitureManipulator : MonoBehaviour
 
             selectedFurniture.transform.localScale = newScale;
 
-            if (axis == Vector3.up)
+            /*if (axis == Vector3.up)
             {
                 float deltaY = newScale.y - oldScale.y;
                 Vector3 pos = selectedFurniture.transform.position;
                 pos.y += deltaY * 0.5f; 
                 selectedFurniture.transform.position = pos;
+            }*/
+            
+            if (axis == Vector3.up)
+            {
+                float oldBottom = selectedFurniture.GetComponent<Renderer>().bounds.min.y;
+
+                selectedFurniture.transform.localScale = newScale;
+
+                float newBottom = selectedFurniture.GetComponent<Renderer>().bounds.min.y;
+
+                float delta = oldBottom - newBottom;
+
+                Vector3 pos = selectedFurniture.transform.position;
+                pos.y += delta;
+                selectedFurniture.transform.position = pos;
+            }
+            else
+            {
+                selectedFurniture.transform.localScale = newScale;
             }
         }
     }

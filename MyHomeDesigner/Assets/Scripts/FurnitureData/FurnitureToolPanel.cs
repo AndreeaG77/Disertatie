@@ -72,8 +72,18 @@ public class FurnitureToolPanel : MonoBehaviour
         }
         else
         {
-            float offsetY = 0.7f + targetObject.transform.localScale.y * 0.5f;
-            worldPos = targetObject.transform.position + new Vector3(0, offsetY, 0);
+            Collider col = targetObject.GetComponent<Collider>();
+            if (col != null)
+            {
+                Vector3 topPoint = col.bounds.max;
+                float offset = 0.5f; 
+                worldPos = new Vector3(topPoint.x, topPoint.y + offset, topPoint.z);
+            }
+            else
+            {
+                worldPos = targetObject.transform.position + Vector3.up * 1f;
+            }
+
         }
 
         Vector3 screenPos = Camera.main.WorldToScreenPoint(worldPos);

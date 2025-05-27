@@ -18,7 +18,7 @@ public class FurnitureManager : MonoBehaviour
 
     void LoadFurnitureFromResources()
     {
-        string[] categories = { "Rooms", "Doors", "Windows", "Kitchen", "LivingRoom", "Bedroom", "Bathroom", "Lighting" };
+        string[] categories = { "Rooms", "Doors", "Windows", "Kitchen", "LivingRoom", "Bedroom", "Bathroom", "Miscellaneos" };
 
         foreach (string category in categories)
         {
