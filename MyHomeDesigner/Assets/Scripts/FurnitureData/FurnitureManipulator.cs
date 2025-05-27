@@ -319,7 +319,7 @@ public class FurnitureManipulator : MonoBehaviour
             selectedFurniture.transform.Rotate(Vector3.up, 100f * Time.deltaTime);
     }
 
-    void HandleScaling()
+    /*void HandleScaling()
     {
         float scroll = Input.GetAxis("Mouse ScrollWheel");
         if (scroll != 0f)
@@ -330,7 +330,29 @@ public class FurnitureManipulator : MonoBehaviour
             scale = Vector3.Min(scale, Vector3.one * 5f);
             selectedFurniture.transform.localScale = scale;
         }
+    }*/
+
+    void HandleScaling()
+    {
+        float scroll = Input.GetAxis("Mouse ScrollWheel");
+        if (scroll != 0f)
+        {
+            Vector3 oldScale = selectedFurniture.transform.localScale;
+            Vector3 newScale = oldScale + Vector3.one * scroll;
+
+            newScale = Vector3.Max(newScale, Vector3.one * 0.2f);
+            newScale = Vector3.Min(newScale, Vector3.one * 5f);
+
+            selectedFurniture.transform.localScale = newScale;
+
+            float deltaY = newScale.y - oldScale.y;
+            Vector3 pos = selectedFurniture.transform.position;
+            pos.y += deltaY * 0.5f;
+            selectedFurniture.transform.position = pos;
+        }
     }
+
+
 
     void HandleUniformScaling()
     {
@@ -349,10 +371,6 @@ public class FurnitureManipulator : MonoBehaviour
         float scroll = Input.GetAxis("Mouse ScrollWheel");
         if (scroll != 0f)
         {
-            /*Vector3 scale = selectedFurniture.transform.localScale;
-            scale += axis * scroll;
-            scale = ClampScale(scale);
-            selectedFurniture.transform.localScale = scale;*/
 
             Vector3 oldScale = selectedFurniture.transform.localScale;
             Vector3 newScale = oldScale + axis * scroll;
@@ -363,9 +381,9 @@ public class FurnitureManipulator : MonoBehaviour
 
             if (axis == Vector3.up)
             {
-                float deltaY = (oldScale.y - newScale.y) * 0.5f;
+                float deltaY = newScale.y - oldScale.y;
                 Vector3 pos = selectedFurniture.transform.position;
-                pos.y -= deltaY;
+                pos.y += deltaY * 0.5f; 
                 selectedFurniture.transform.position = pos;
             }
         }
