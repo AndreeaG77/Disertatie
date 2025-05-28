@@ -1,2 +1,16 @@
 fileFormatVersion: 2
 guid: d10838564eb201e44a69de3744685a78
+MonoImporter:
+  externalObjects: {}
+  serializedVersion: 2
+  defaultReferences:
+  - moveButton: {instanceID: 0}
+  - rotateButton: {instanceID: 0}
+  - scaleButton: {instanceID: 0}
+  - deleteButton: {instanceID: 0}
+  - scaleToolPanelPrefab: {instanceID: 0}
+  executionOrder: 0
+  icon: {instanceID: 0}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 

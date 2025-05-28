@@ -5774,7 +5774,10 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   toolPanelPrefab: {fileID: 1755334840805737514, guid: bc84b23e918221e4bb60e9b542f0bf7e, type: 3}
+  moveToolPanelPrefab: {fileID: 3478310347788702084, guid: 1b0c4b9f5cba9ff4b9c29b129e76dad8, type: 3}
   canvasParent: {fileID: 479049271}
+  scaleToolPanelPrefab: {fileID: 6193538922836038865, guid: 127c6582d858ad8458e89d2309550952, type: 3}
+  deleteRoomButtonPrefab: {fileID: 2283900107201990562, guid: b36e84b21dc941b4b92b508326ba054a, type: 3}
 --- !u!114 &836140790
 MonoBehaviour:
   m_ObjectHideFlags: 0

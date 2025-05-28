@@ -286,7 +286,7 @@ public class LoginRegisterUIManager : MonoBehaviour
             }
         }
     }
-    
+
     public void OnBackButtonClicked()
     {
         emailNotFoundText.SetActive(false);
@@ -298,6 +298,11 @@ public class LoginRegisterUIManager : MonoBehaviour
         forgotPasswordPanel.SetActive(false);
         loginPanel.SetActive(true);
 
+    }
+
+    public void OnExitAppClicked()
+    {
+        Application.Quit();
     }
 
 

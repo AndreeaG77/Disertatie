@@ -21,8 +21,8 @@ public class RoomManager : MonoBehaviour
 
     public List<RoomData> allRooms = new List<RoomData>();
 
-    public delegate void RoomRegisteredHandler(RoomData newRoom); 
-    public event RoomRegisteredHandler OnRoomRegistered;          
+    public delegate void RoomRegisteredHandler(RoomData newRoom);
+    public event RoomRegisteredHandler OnRoomRegistered;
 
     private int roomCount = 0;
 
@@ -54,21 +54,21 @@ public class RoomManager : MonoBehaviour
 
         Transform cameraSpawn = roomTransform.Find("CameraSpawn");
 
-       /* if (cameraSpawn != null)
-        {
-            GameObject marker = GameObject.CreatePrimitive(PrimitiveType.Sphere);
-            marker.transform.position = cameraSpawn.position;
-            marker.transform.localScale = Vector3.one * 0.3f;
-            marker.GetComponent<Collider>().enabled = false;
-            marker.GetComponent<MeshRenderer>().material.color = Color.green;
-        }
-        else
-        {
-            Debug.LogWarning($"CameraSpawn NU a fost găsit pentru {roomName}. Se folosește fallback.");
-        }*/
-        
-        Vector3 viewPosition = cameraSpawn != null 
-            ? cameraSpawn.position 
+        /* if (cameraSpawn != null)
+         {
+             GameObject marker = GameObject.CreatePrimitive(PrimitiveType.Sphere);
+             marker.transform.position = cameraSpawn.position;
+             marker.transform.localScale = Vector3.one * 0.3f;
+             marker.GetComponent<Collider>().enabled = false;
+             marker.GetComponent<MeshRenderer>().material.color = Color.green;
+         }
+         else
+         {
+             Debug.LogWarning($"CameraSpawn NU a fost găsit pentru {roomName}. Se folosește fallback.");
+         }*/
+
+        Vector3 viewPosition = cameraSpawn != null
+            ? cameraSpawn.position
             : roomTransform.position + new Vector3(0, 1.7f, 0);
 
         RoomData data = new RoomData(roomName, roomTransform);
@@ -86,5 +86,33 @@ public class RoomManager : MonoBehaviour
         return null;
     }
 
-    public int RoomCount => allRooms.Count;  
+    public int RoomCount => allRooms.Count;
+
+    public event System.Action<RoomData> OnRoomDeleted;
+
+    public void DeleteRoom(RoomData data)
+    {
+        if (allRooms.Contains(data))
+        {
+            allRooms.Remove(data);
+            roomCount--;
+            OnRoomDeleted?.Invoke(data);
+            ReindexRooms();
+        }
+    }
+
+    private void ReindexRooms()
+    {
+        for (int i = 0; i < allRooms.Count; i++)
+        {
+            allRooms[i].roomName = $"Room {i + 1}";
+        }
+    }
+
+    public RoomData FindRoomDataByTransform(Transform roomTransform)
+    {
+        return allRooms.Find(r => r.roomTransform == roomTransform);
+    }
+
+
 }

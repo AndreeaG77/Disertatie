@@ -190,7 +190,19 @@ public class RoomButtonUI : MonoBehaviour
     {
         yield return MoveCameraSmooth(cam, to2DPos, to2DRot, duration1, null);
         yield return MoveCameraSmooth(cam, toRoomPos, toRoomRot, duration2, roomTransform);
-        
+
     }
+    
+    public bool RepresentsRoom(RoomManager.RoomData data)
+    {
+        return this.roomData == data;
+    }
+
+    public void UpdateLabel(string name)
+    {
+        roomData.roomName = name;
+        GetComponentInChildren<TMPro.TextMeshProUGUI>().text = name;
+    }
+
 
 }

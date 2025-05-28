@@ -26,6 +26,21 @@ public class FurnitureManipulator : MonoBehaviour
         }
     }
 
+    public enum MoveAxis { Free, X, Y, Z }
+    private MoveAxis moveAxis = MoveAxis.Free;
+
+    public void SetMoveAxis(string axis)
+    {
+        switch (axis)
+        {
+            case "X": moveAxis = MoveAxis.X; break;
+            case "Y": moveAxis = MoveAxis.Y; break;
+            case "Z": moveAxis = MoveAxis.Z; break;
+            default: moveAxis = MoveAxis.Free; break;
+        }
+    }
+
+
 
     void Awake()
     {
@@ -135,7 +150,7 @@ public class FurnitureManipulator : MonoBehaviour
         }
     }*/
 
-    void HandleMovement()
+    /*void HandleMovement()
     {
         if (Input.GetMouseButton(0))
         {
@@ -178,7 +193,116 @@ public class FurnitureManipulator : MonoBehaviour
                     selectedFurniture.transform.position = targetPos;
             }
         }
+    }*/
+
+    void HandleMovement()
+    {
+        if (Input.GetMouseButton(0))
+        {
+            Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
+            int mask = ~(1 << LayerMask.NameToLayer("Room"));
+            if (Physics.Raycast(ray, out RaycastHit hit, 100f, mask))
+            {
+                if (hit.collider.gameObject != selectedFurniture)
+                    return;
+
+                Vector3 currentPos = selectedFurniture.transform.position;
+                Vector3 targetPos = hit.point;
+
+                switch (moveAxis)
+                {
+                    case MoveAxis.X:
+                        targetPos = new Vector3(hit.point.x, currentPos.y, currentPos.z);
+                        break;
+                    /*case MoveAxis.Y:
+                        targetPos = new Vector3(currentPos.x, hit.point.y, currentPos.z);
+                        break;*/
+                    /*case MoveAxis.Y:
+                        {
+                            Plane plane = new Plane(Vector3.forward, currentPos);
+                            if (plane.Raycast(ray, out float enter))
+                            {
+                                Vector3 hitPoint = ray.GetPoint(enter);
+                                targetPos = new Vector3(currentPos.x, hitPoint.y, currentPos.z);
+                            }
+                            else
+                            {
+                                return; 
+                            }
+                            break;
+                        }
+                    */
+                    /*case MoveAxis.Y:
+                        {
+                            //Plane horizontalPlane = new Plane(Vector3.up, currentPos);
+                            Plane horizontalPlane = new Plane(Camera.main.transform.forward, currentPos);
+                            if (horizontalPlane.Raycast(ray, out float enter))
+                            {
+                                Vector3 hitPoint = ray.GetPoint(enter);
+                                float halfHeight = selectedFurniture.GetComponent<Renderer>().bounds.extents.y;
+                                float minY = 1f + halfHeight;
+                                targetPos = new Vector3(currentPos.x, Mathf.Max(hitPoint.y, minY + halfHeight), currentPos.z);
+                            }
+                            else
+                            {
+                                return;
+                            }
+                            break;
+                        }*/
+                    case MoveAxis.Y:
+                    {
+                        Plane yPlane = new Plane(Vector3.right, currentPos); 
+                        if (yPlane.Raycast(ray, out float enter))
+                        {
+                            Vector3 hitPoint = ray.GetPoint(enter);
+
+                            float halfHeight = selectedFurniture.GetComponent<Renderer>().bounds.extents.y;
+
+                            float minY = 1.5f + halfHeight;  
+                            float maxY = 4f - halfHeight;   
+
+                            float clampedY = Mathf.Clamp(hitPoint.y, minY, maxY);
+                            targetPos = new Vector3(currentPos.x, clampedY, currentPos.z);
+                        }
+                        else
+                        {
+                            return;
+                        }
+                        break;
+                    }
+
+                    case MoveAxis.Z:
+                        targetPos = new Vector3(currentPos.x, currentPos.y, hit.point.z);
+                        break;
+                    case MoveAxis.Free:
+                        targetPos = new Vector3(hit.point.x, currentPos.y, hit.point.z);
+                        break;
+                }
+
+                // Suprapunere și coliziune
+                BoxCollider col = selectedFurniture.GetComponent<BoxCollider>();
+                Vector3 size = Vector3.Scale(col.size, selectedFurniture.transform.lossyScale);
+                Vector3 halfExtents = size * 0.5f;
+
+                Collider[] hits = Physics.OverlapBox(targetPos, halfExtents, selectedFurniture.transform.rotation);
+                foreach (var h in hits)
+                {
+                    if (h.gameObject != selectedFurniture && h.gameObject.layer != LayerMask.NameToLayer("Room") && h.gameObject.layer != LayerMask.NameToLayer("Floor"))
+                    {
+                        Debug.Log("Suprapunere cu: " + h.name);
+                        return;
+                    }
+                }
+
+                Rigidbody rb = selectedFurniture.GetComponent<Rigidbody>();
+                if (rb != null)
+                    rb.MovePosition(targetPos);
+                else
+                    selectedFurniture.transform.position = targetPos;
+            }
+        }
     }
+
 
     void HandleDoorMovementX()
     {
@@ -332,7 +456,7 @@ public class FurnitureManipulator : MonoBehaviour
         }
     }*/
 
-    void HandleScaling()
+    /*void HandleScaling()
     {
         float scroll = Input.GetAxis("Mouse ScrollWheel");
         if (scroll != 0f)
@@ -350,8 +474,30 @@ public class FurnitureManipulator : MonoBehaviour
             pos.y += deltaY * 0.5f;
             selectedFurniture.transform.position = pos;
         }
-    }
+    }*/
 
+    void HandleScaling()
+    {
+        float scroll = Input.GetAxis("Mouse ScrollWheel");
+        if (scroll != 0f)
+        {
+            float oldBottom = selectedFurniture.GetComponent<Renderer>().bounds.min.y;
+
+            Vector3 oldScale = selectedFurniture.transform.localScale;
+            Vector3 newScale = oldScale + Vector3.one * scroll;
+
+            newScale = ClampScale(newScale);
+
+            selectedFurniture.transform.localScale = newScale;
+
+            float newBottom = selectedFurniture.GetComponent<Renderer>().bounds.min.y;
+            float delta = oldBottom - newBottom;
+
+            Vector3 pos = selectedFurniture.transform.position;
+            pos.y += delta;
+            selectedFurniture.transform.position = pos;
+        }
+    }
 
 
     void HandleUniformScaling()
