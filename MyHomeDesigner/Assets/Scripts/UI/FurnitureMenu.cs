@@ -9,18 +9,18 @@ public class FurnitureMenu : MonoBehaviour
     public Canvas canvas;
     public Image dragPreviewImage;
     public Transform furnitureContentPanel;
-    public GameObject furniturePanel; // Parent for furniture buttons
-    public GameObject furnitureItemPrefab; // Prefab for each furniture item in UI
-    public TMP_InputField searchInputField; // Search bar input field
-    public Button exitButton; // Exit button
+    public GameObject furniturePanel; 
+    public GameObject furnitureItemPrefab;
+    public TMP_InputField searchInputField; 
+    public Button exitButton; 
     public Button menuButton;
     public GameObject roomsCategoryButton;
     public GameObject doorsCategoryButton;
     public GameObject windowsCategoryButton;
 
 
-    private List<FurnitureItem> allFurnitureItems = new List<FurnitureItem>(); // Stores all items
-    private List<GameObject> spawnedFurnitureUI = new List<GameObject>(); // Stores created UI elements
+    private List<FurnitureItem> allFurnitureItems = new List<FurnitureItem>(); 
+    private List<GameObject> spawnedFurnitureUI = new List<GameObject>(); 
 
     void Start()
     {
@@ -33,14 +33,29 @@ public class FurnitureMenu : MonoBehaviour
     public void DisplayFurnitureItems(List<FurnitureItem> itemsToShow)
     {
         ClearFurnitureUI();
-        //Debug.Log("Displaying " + itemsToShow.Count + " furniture items");
         foreach (FurnitureItem item in itemsToShow)
         {
             GameObject newItem = Instantiate(furnitureItemPrefab, furnitureContentPanel);
             newItem.GetComponentInChildren<TextMeshProUGUI>().text = item.name;
             newItem.transform.Find("Image").GetComponent<Image>().sprite = item.thumbnail;
-            //Debug.Log(item.name + "\n");
+            Transform priceTagTransform = newItem.transform.Find("PriceTagParent/PriceTag");
+            if (priceTagTransform != null)
+            {
+                TextMeshProUGUI priceText = priceTagTransform.GetComponent<TextMeshProUGUI>();
+                if (priceText != null)
+                {
+                    if (item.category == "Rooms")
+                    {
+                        priceTagTransform.gameObject.SetActive(false);
+                    }
+                    else
+                        priceText.text = item.price;
+                }
+            }
+
             newItem.GetComponent<Button>().onClick.AddListener(() => OnFurnitureSelected(item));
+
+
 
             FurnitureDragHandler dragHandler = newItem.GetComponent<FurnitureDragHandler>();
             if (dragHandler != null)
@@ -57,7 +72,7 @@ public class FurnitureMenu : MonoBehaviour
 
     public void OnCategorySelected(string category)
     {
-        searchInputField.text = ""; // Clear search when switching category
+        searchInputField.text = ""; 
         List<FurnitureItem> filteredItems = allFurnitureItems.FindAll(item => item.category == category);
         DisplayFurnitureItems(filteredItems);
     }

@@ -130,7 +130,7 @@ public class MainMenuUIManager : MonoBehaviour
         string token = PlayerPrefs.GetString("sessionToken", "");
         string userId = "";
 
-        UnityWebRequest validateReq = UnityWebRequest.Get("http://localhost:3000/api/validate-token");
+        UnityWebRequest validateReq = UnityWebRequest.Get("https://disertatie-backend.onrender.com/api/validate-token");
         validateReq.SetRequestHeader("Authorization", "Bearer " + token);
         yield return validateReq.SendWebRequest();
 
@@ -145,7 +145,7 @@ public class MainMenuUIManager : MonoBehaviour
             yield break;
         }
 
-        string url = $"http://localhost:3000/api/projects/{userId}";
+        string url = $"https://disertatie-backend.onrender.com/api/projects/{userId}";
         UnityWebRequest request = UnityWebRequest.Get(url);
         request.SetRequestHeader("Authorization", "Bearer " + token);
 
@@ -222,7 +222,7 @@ public class MainMenuUIManager : MonoBehaviour
             yield break;
         }
 
-        UnityWebRequest request = UnityWebRequest.Delete("http://localhost:3000/api/projects/" + projectId);
+        UnityWebRequest request = UnityWebRequest.Delete("https://disertatie-backend.onrender.com/api/projects/" + projectId);
         request.SetRequestHeader("Authorization", "Bearer " + token);
 
         yield return request.SendWebRequest();
@@ -320,7 +320,7 @@ public class MainMenuUIManager : MonoBehaviour
         string token = PlayerPrefs.GetString("sessionToken", "");
         string jsonData = JsonUtility.ToJson(new EmailOnlyPayload { email = newEmail });
 
-        UnityWebRequest request = new UnityWebRequest("http://localhost:3000/api/update-email", "POST");
+        UnityWebRequest request = new UnityWebRequest("https://disertatie-backend.onrender.com/api/update-email", "POST");
         byte[] bodyRaw = System.Text.Encoding.UTF8.GetBytes(jsonData);
         request.uploadHandler = new UploadHandlerRaw(bodyRaw);
         request.downloadHandler = new DownloadHandlerBuffer();
@@ -371,7 +371,7 @@ public class MainMenuUIManager : MonoBehaviour
             yield break;
         }
 
-        UnityWebRequest request = UnityWebRequest.Delete("http://localhost:3000/api/delete-account");
+        UnityWebRequest request = UnityWebRequest.Delete("https://disertatie-backend.onrender.com/api/delete-account");
         request.SetRequestHeader("Authorization", "Bearer " + token);
 
         yield return request.SendWebRequest();
@@ -442,7 +442,7 @@ public class MainMenuUIManager : MonoBehaviour
 
         string jsonData = JsonUtility.ToJson(payload);
 
-        UnityWebRequest request = new UnityWebRequest("http://localhost:3000/api/change-password", "POST");
+        UnityWebRequest request = new UnityWebRequest("https://disertatie-backend.onrender.com/api/change-password", "POST");
         byte[] bodyRaw = System.Text.Encoding.UTF8.GetBytes(jsonData);
         request.uploadHandler = new UploadHandlerRaw(bodyRaw);
         request.downloadHandler = new DownloadHandlerBuffer();

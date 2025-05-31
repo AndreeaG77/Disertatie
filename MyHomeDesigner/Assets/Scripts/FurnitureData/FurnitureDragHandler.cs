@@ -208,7 +208,7 @@ public class FurnitureDragHandler : MonoBehaviour, IBeginDragHandler, IDragHandl
             foreach (var col in overlaps)
             {
                 int layer = col.gameObject.layer;
-                if (layer == LayerMask.NameToLayer("Door") || layer == LayerMask.NameToLayer("Window"))
+                if (layer == LayerMask.NameToLayer("Door") || layer == LayerMask.NameToLayer("Window") || layer == LayerMask.NameToLayer("Floor"))
                 {
                     overlapWithDoorOrWindow = true;
                     break;
@@ -333,7 +333,7 @@ public class FurnitureDragHandler : MonoBehaviour, IBeginDragHandler, IDragHandl
 
         if (rb != null)
         {
-            rb.isKinematic = false;  
+            rb.isKinematic = false;
             rb.useGravity = true;
 
             int roomLayer = LayerMask.NameToLayer("Room");
@@ -344,14 +344,16 @@ public class FurnitureDragHandler : MonoBehaviour, IBeginDragHandler, IDragHandl
                 Physics.IgnoreLayerCollision(col.gameObject.layer, roomLayer, true);
             }
 
-            StartCoroutine(SetKinematicAfterLanding(rb)); 
-       }
+            StartCoroutine(SetKinematicAfterLanding(rb));
+        }
 
         Destroy(previewInstance);
         if (highlightBox != null) Destroy(highlightBox);
 
         //GameObject instance = Instantiate(furnitureItem.prefab, worldPos, previewInstance.transform.rotation);
         instance.AddComponent<SelectableFurniture>();
+        SelectableFurniture sf = instance.GetComponent<SelectableFurniture>();
+        sf.price = furnitureItem.price;
 
     }
 
@@ -418,8 +420,10 @@ public class FurnitureDragHandler : MonoBehaviour, IBeginDragHandler, IDragHandl
 
         Destroy(previewInstance);
         if (highlightBox != null) Destroy(highlightBox);
-        
+
         instance.AddComponent<SelectableFurniture>();
+        SelectableFurniture sf = instance.GetComponent<SelectableFurniture>();
+        sf.price = furnitureItem.price;
     }
 
 
@@ -464,6 +468,8 @@ public class FurnitureDragHandler : MonoBehaviour, IBeginDragHandler, IDragHandl
         if (highlightBox != null) Destroy(highlightBox);
 
         instance.AddComponent<SelectableFurniture>();
+        SelectableFurniture sf = instance.GetComponent<SelectableFurniture>();
+        sf.price = furnitureItem.price;
     }
 
 

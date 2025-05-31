@@ -29,8 +29,10 @@ public class FurnitureManager : MonoBehaviour
             foreach (GameObject prefab in loadedPrefabs)
             {
                 Sprite matchingThumbnail = System.Array.Find(loadedThumbnails, thumb => thumb.name == prefab.name);
-                FurnitureItem furnitureItem = new FurnitureItem(prefab.name, category, prefab, matchingThumbnail, DeterminePlacementType(category)
-);
+                string price = FurniturePriceDatabase.GetPrice(category, prefab.name);
+                FurnitureItem furnitureItem = new FurnitureItem(prefab.name, category, prefab, matchingThumbnail, DeterminePlacementType(category), price);
+
+                //FurnitureItem furnitureItem = new FurnitureItem(prefab.name, category, prefab, matchingThumbnail, DeterminePlacementType(category));
 
                 furnitureList.Add(furnitureItem);
                 allFurnitureItems.Add(furnitureItem);

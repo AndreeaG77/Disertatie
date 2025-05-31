@@ -8,13 +8,15 @@ public class FurnitureItem
     public GameObject prefab;
     public Sprite thumbnail;
     public PlacementType placementType;
+    public string price;
 
-    public FurnitureItem(string name, string category, GameObject prefab, Sprite thumbnail, PlacementType placementType)
+    public FurnitureItem(string name, string category, GameObject prefab, Sprite thumbnail, PlacementType placementType, string price = "0€")
     {
         this.name = name;
         this.category = category;
         this.prefab = prefab;
         this.thumbnail = thumbnail;
         this.placementType = placementType;
+        this.price = price;
     }
 }

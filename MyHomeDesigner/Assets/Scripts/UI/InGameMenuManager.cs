@@ -29,6 +29,8 @@ public class InGameMenuManager : MonoBehaviour
     public Button backFromSettingsButton;
     public Button soundOnButton;
     public Button soundOffButton;
+    public Button roomTotalButton;
+    public Button hideTotalButton;
 
     private bool isMenuOpen = false;
     private AudioSource musicSource;
@@ -41,6 +43,7 @@ public class InGameMenuManager : MonoBehaviour
 
     //private bool isEditingProjectName = false;
 
+    public RoomTotalManager roomTotalManager;
 
 
     void Start()
@@ -80,18 +83,32 @@ public class InGameMenuManager : MonoBehaviour
             menuPanel.SetActive(isMenuOpen);
 
             if (isMenuOpen)
-            {   
+            {
                 GameObject existingPanel = GameObject.FindWithTag("EditorOnly");
                 if (existingPanel != null)
                 {
                     FurnitureManipulator.Instance.ClearMode();
                     Destroy(existingPanel);
                 }
+
                 settingsPanel.SetActive(false);
                 buttonsPanel.SetActive(true);
+
+                roomTotalManager.totalsAreShown = true;
+                roomTotalButton.gameObject.SetActive(false);
+                hideTotalButton.gameObject.SetActive(false);
+            }
+            else
+            {
+                if (ViewState.CurrentMode == ViewMode.Mode2D && roomTotalManager.totalsAreShown)
+                {
+                    roomTotalManager.totalsAreShown = false;
+                    roomTotalButton.gameObject.SetActive(true);
+                }
             }
         }
     }
+
 
     public void OnReturnToProjectClicked()
     {
@@ -199,7 +216,8 @@ public class InGameMenuManager : MonoBehaviour
 
     IEnumerator SendProjectToBackend(string json)
     {
-        string url = "http://localhost:3000/api/projects/save";
+        //string url = "http://localhost:3000/api/projects/save";
+        string url = "https://disertatie-backend.onrender.com/api/projects/save";
         string token = PlayerPrefs.GetString("sessionToken", "");
 
         UnityWebRequest request = new UnityWebRequest(url, "POST");

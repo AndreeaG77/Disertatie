@@ -94,7 +94,7 @@ public class LoginRegisterUIManager : MonoBehaviour
     {
         string jsonData = JsonUtility.ToJson(new LoginPayload(email, password));
 
-        UnityWebRequest request = new UnityWebRequest("http://localhost:3000/api/login", "POST");
+        UnityWebRequest request = new UnityWebRequest("https://disertatie-backend.onrender.com/api/login", "POST");
         byte[] bodyRaw = System.Text.Encoding.UTF8.GetBytes(jsonData);
         request.uploadHandler = new UploadHandlerRaw(bodyRaw);
         request.downloadHandler = new DownloadHandlerBuffer();
@@ -130,7 +130,7 @@ public class LoginRegisterUIManager : MonoBehaviour
 
     IEnumerator TokenLoginRequest(string email, string token)
     {
-        string url = "http://localhost:3000/api/token-login";
+        string url = "https://disertatie-backend.onrender.com/api/token-login";
         TokenLoginPayload data = new TokenLoginPayload { email = email, token = token };
         string jsonData = JsonUtility.ToJson(data);
 
@@ -179,7 +179,7 @@ public class LoginRegisterUIManager : MonoBehaviour
 
     IEnumerator RegisterUser(string email, string password)
     {
-        string url = "http://localhost:3000/api/register";
+        string url = "https://disertatie-backend.onrender.com/api/register";
 
         RegisterRequest data = new RegisterRequest { email = email, password = password };
         string jsonData = JsonUtility.ToJson(data);
@@ -254,7 +254,7 @@ public class LoginRegisterUIManager : MonoBehaviour
 
     IEnumerator SendResetPasswordRequest(string email)
     {
-        string url = "http://localhost:3000/api/reset-password";
+        string url = "https://disertatie-backend.onrender.com/api/reset-password";
         string jsonData = JsonUtility.ToJson(new EmailOnlyPayload { email = email });
 
         UnityWebRequest request = new UnityWebRequest(url, "POST");
@@ -303,6 +303,11 @@ public class LoginRegisterUIManager : MonoBehaviour
     public void OnExitAppClicked()
     {
         Application.Quit();
+    }
+
+    public void OnDownloadAppClicked()
+    {
+        Application.OpenURL("https://drive.google.com/uc?export=download&id=1rP0YbrpWF0v3UbU3RWa6okWrJ5lkQut4");
     }
 
 
