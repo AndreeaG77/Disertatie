@@ -30,11 +30,12 @@ public class FurnitureManager : MonoBehaviour
             {
                 Sprite matchingThumbnail = System.Array.Find(loadedThumbnails, thumb => thumb.name == prefab.name);
                 string price = FurniturePriceDatabase.GetPrice(category, prefab.name);
+                if (category == "Rooms")
+                    price = "-";
                 FurnitureItem furnitureItem = new FurnitureItem(prefab.name, category, prefab, matchingThumbnail, DeterminePlacementType(category), price);
-
                 //FurnitureItem furnitureItem = new FurnitureItem(prefab.name, category, prefab, matchingThumbnail, DeterminePlacementType(category));
 
-                furnitureList.Add(furnitureItem);
+                    furnitureList.Add(furnitureItem);
                 allFurnitureItems.Add(furnitureItem);
             }
 

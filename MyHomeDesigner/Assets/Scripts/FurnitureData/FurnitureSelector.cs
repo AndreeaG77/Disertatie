@@ -21,6 +21,8 @@ public class FurnitureSelector : MonoBehaviour
 
     void Update()
     {
+        if (UIBlocker.IsUIBlockingFurniture) return;
+        
         if (Input.GetMouseButtonDown(0))
         {
 

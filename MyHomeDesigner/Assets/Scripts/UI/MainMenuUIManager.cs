@@ -13,6 +13,7 @@ public class MainMenuUIManager : MonoBehaviour
     [Header("Panels")]
     public GameObject mainMenuPanel;
     public GameObject projectsPanel;
+    public GameObject audioSettingsPanel;
 
     [Header("Buttons")]
     public Button createProjectButton;
@@ -38,7 +39,13 @@ public class MainMenuUIManager : MonoBehaviour
 
     private string originalEmail;
     private bool isEditingEmail = false;
-    private Button lastDeleteButton = null; 
+    private Button lastDeleteButton = null;
+
+    [Header("Password Toggle")]
+    public GameObject seePasswordButton;
+    public GameObject hidePasswordButton;
+    private string realPassword = "";
+
 
 
     [Header("Change Password References")]
@@ -49,11 +56,30 @@ public class MainMenuUIManager : MonoBehaviour
     public GameObject newPasswordMismatchMessage;
     public GameObject changePasswordPopupPanel;
 
+    [Header("Change Password Visibility")]
+    public GameObject seePassword1Button;
+    public GameObject hidePassword1Button;
+    public GameObject seePassword2Button;
+    public GameObject hidePassword2Button;
+    public GameObject seePassword3Button;
+    public GameObject hidePassword3Button;
+
+
     [Header("New Project Panel")]
     public GameObject newProjectPanel;
     public TMP_InputField projectNameInput;
     public Button saveProjectButton;
     public GameObject enterNameText;
+    public GameObject backFromCreateProjectButton;
+
+    [Header("Audio Settings")]
+    public Slider volumeSlider;
+    public TMP_Text volumeValueText;
+    public Button soundOnButton;
+    public Button soundOffButton;
+    public Button backFromAudioSettingsButton;
+
+    private AudioSource musicSource;
 
 
 
@@ -64,6 +90,7 @@ public class MainMenuUIManager : MonoBehaviour
         logoutButton.onClick.AddListener(OnLogoutClicked);
         loadSelectedButton.onClick.AddListener(OnLoadSelectedProject);
         backButton.onClick.AddListener(OnBackClicked);
+        volumeSlider.onValueChanged.AddListener(UpdateVolumeUI);
         //saveProjectButton.onClick.AddListener(OnCreateProjectConfirmed);
 
         loadSelectedButton.interactable = false;
@@ -71,6 +98,40 @@ public class MainMenuUIManager : MonoBehaviour
         accountPanel.SetActive(false);
         changePasswordPanel.SetActive(false);
         deleteAccountPanel.SetActive(false);
+        audioSettingsPanel.SetActive(false);
+
+        GameObject musicManager = GameObject.Find("MusicManager");
+        if (musicManager != null)
+            musicSource = musicManager.GetComponent<AudioSource>();
+
+        if (musicSource != null)
+        {
+            float initialVolume = musicSource.volume;
+            initialVolume = initialVolume * 100f;
+            volumeSlider.value = initialVolume;
+            UpdateVolumeUI(initialVolume);
+        }
+
+        passwordInput.contentType = TMP_InputField.ContentType.Password;
+        passwordInput.ForceLabelUpdate();
+        hidePasswordButton.SetActive(true);
+        seePasswordButton.SetActive(false);
+
+        seePassword1Button.SetActive(false);
+        hidePassword1Button.SetActive(true);
+        oldPasswordInput.contentType = TMP_InputField.ContentType.Password;
+
+        seePassword2Button.SetActive(false);
+        hidePassword2Button.SetActive(true);
+        newPasswordInput.contentType = TMP_InputField.ContentType.Password;
+
+        seePassword3Button.SetActive(false);
+        hidePassword3Button.SetActive(true);
+        confirmPasswordInput.contentType = TMP_InputField.ContentType.Password;
+
+        oldPasswordInput.ForceLabelUpdate();
+        newPasswordInput.ForceLabelUpdate();
+        confirmPasswordInput.ForceLabelUpdate();
     }
 
     public void OnCreateNewProject()
@@ -104,11 +165,19 @@ public class MainMenuUIManager : MonoBehaviour
         SceneManager.LoadScene("DefaultScene");
     }
 
+    public void OnBackFromCreateProjectClicked()
+    {
+        mainMenuPanel.SetActive(true);
+        newProjectPanel.SetActive(false);
+        projectNameInput.text = "";
+    }
+
 
     public void OnLogoutClicked()
     {
         PlayerPrefs.DeleteKey("sessionEmail");
         PlayerPrefs.DeleteKey("sessionToken");
+        PlayerPrefs.DeleteKey("sessionPassword");
         PlayerPrefs.Save();
         SceneManager.LoadScene("LoginPage");
     }
@@ -264,11 +333,40 @@ public class MainMenuUIManager : MonoBehaviour
         emailInput.text = originalEmail;
         emailInput.interactable = false;
 
-        passwordInput.text = "********";
+        if (PlayerPrefs.GetInt("rememberMe", 0) == 1)
+            realPassword = PlayerPrefs.GetString("userPassword", "");
+        else
+            realPassword = PlayerPrefs.GetString("sessionPassword", "");
+        passwordInput.text = realPassword;
+        passwordInput.contentType = TMP_InputField.ContentType.Password;
+        passwordInput.ForceLabelUpdate();
         passwordInput.interactable = false;
 
         isEditingEmail = false;
     }
+
+    public void OnSeePasswordClicked()
+    {
+        //passwordInput.interactable = true;
+        passwordInput.contentType = TMP_InputField.ContentType.Password;
+        passwordInput.ForceLabelUpdate();
+        passwordInput.interactable = false;
+
+        seePasswordButton.SetActive(false);
+        hidePasswordButton.SetActive(true);
+    }
+
+    public void OnHidePasswordClicked()
+    {
+        //passwordInput.interactable = true;
+        passwordInput.contentType = TMP_InputField.ContentType.Standard;
+        passwordInput.ForceLabelUpdate();
+        passwordInput.interactable = false;
+
+        hidePasswordButton.SetActive(false);
+        seePasswordButton.SetActive(true);
+    }
+
 
     public void OnChangeEmailClicked()
     {
@@ -306,7 +404,9 @@ public class MainMenuUIManager : MonoBehaviour
         emailInput.text = originalEmail;
         emailInput.interactable = false;
 
-        passwordInput.text = "********";
+        passwordInput.text = realPassword;
+        passwordInput.contentType = TMP_InputField.ContentType.Password;
+        passwordInput.ForceLabelUpdate();
         passwordInput.interactable = false;
 
         isEditingEmail = false;
@@ -386,8 +486,10 @@ public class MainMenuUIManager : MonoBehaviour
 
             PlayerPrefs.DeleteKey("userEmail");
             PlayerPrefs.DeleteKey("userToken");
+            PlayerPrefs.DeleteKey("userPassword");
             PlayerPrefs.DeleteKey("sessionEmail");
             PlayerPrefs.DeleteKey("sessionToken");
+            PlayerPrefs.DeleteKey("sessionPassword");
             PlayerPrefs.SetInt("rememberMe", 0);
             PlayerPrefs.Save();
 
@@ -411,6 +513,58 @@ public class MainMenuUIManager : MonoBehaviour
         wrongOldPasswordMessage.SetActive(false);
         newPasswordMismatchMessage.SetActive(false);
     }
+
+    // OLD PASSWORD
+    public void OnSeePassword1Clicked()
+    {
+        oldPasswordInput.contentType = TMP_InputField.ContentType.Password;
+        seePassword1Button.SetActive(false);
+        hidePassword1Button.SetActive(true);
+        oldPasswordInput.ForceLabelUpdate();
+    }
+
+    public void OnHidePassword1Clicked()
+    {
+        oldPasswordInput.contentType = TMP_InputField.ContentType.Standard;
+        seePassword1Button.SetActive(true);
+        hidePassword1Button.SetActive(false);
+        oldPasswordInput.ForceLabelUpdate();
+    }
+
+    // NEW PASSWORD
+    public void OnSeePassword2Clicked()
+    {
+        newPasswordInput.contentType = TMP_InputField.ContentType.Password;
+        seePassword2Button.SetActive(false);
+        hidePassword2Button.SetActive(true);
+        newPasswordInput.ForceLabelUpdate();
+    }
+
+    public void OnHidePassword2Clicked()
+    {
+        newPasswordInput.contentType = TMP_InputField.ContentType.Standard;
+        seePassword2Button.SetActive(true);
+        hidePassword2Button.SetActive(false);
+        newPasswordInput.ForceLabelUpdate();
+    }
+
+    // CONFIRM PASSWORD
+    public void OnSeePassword3Clicked()
+    {
+        confirmPasswordInput.contentType = TMP_InputField.ContentType.Password;
+        seePassword3Button.SetActive(false);
+        hidePassword3Button.SetActive(true);
+        confirmPasswordInput.ForceLabelUpdate();
+    }
+
+    public void OnHidePassword3Clicked()
+    {
+        confirmPasswordInput.contentType = TMP_InputField.ContentType.Standard;
+        seePassword3Button.SetActive(true);
+        hidePassword3Button.SetActive(false);
+        confirmPasswordInput.ForceLabelUpdate();
+    }
+
 
     public void OnChangePasswordSaveClicked()
     {
@@ -459,9 +613,11 @@ public class MainMenuUIManager : MonoBehaviour
 
             // Update PlayerPrefs
             PlayerPrefs.SetString("sessionToken", response.token);
+            PlayerPrefs.SetString("sessionPassword", newPassword);
             if (PlayerPrefs.GetInt("rememberMe", 0) == 1)
             {
                 PlayerPrefs.SetString("userToken", response.token);
+                PlayerPrefs.SetString("userPassword", newPassword);
             }
             PlayerPrefs.Save();
 
@@ -492,7 +648,46 @@ public class MainMenuUIManager : MonoBehaviour
         changePasswordPopupPanel.SetActive(false);
     }
 
+    public void OnOpenAudioSettingsPanel()
+    {
+        mainMenuPanel.SetActive(false);
+        audioSettingsPanel.SetActive(true);
+    }
 
+    public void OnBackFromAudioSettingsClicked()
+    {
+        audioSettingsPanel.SetActive(false);
+        mainMenuPanel.SetActive(true);
+    }
+
+    public void OnSoundOnIconClicked()
+    {
+        volumeSlider.value = 0f;
+        UpdateVolumeUI(0f);
+        soundOnButton.gameObject.SetActive(false);
+        soundOffButton.gameObject.SetActive(true);
+    }
+
+    public void OnSoundOffIconClicked()
+    {
+        volumeSlider.value = 50f;
+        UpdateVolumeUI(50f);
+        soundOffButton.gameObject.SetActive(false);
+        soundOnButton.gameObject.SetActive(true);
+    }
+
+    private void UpdateVolumeUI(float value)
+    {
+        int percent = Mathf.RoundToInt(value);
+        volumeValueText.text = percent.ToString();
+
+        bool isMuted = percent == 0;
+        soundOnButton.gameObject.SetActive(!isMuted);
+        soundOffButton.gameObject.SetActive(isMuted);
+
+        if (musicSource != null)
+            musicSource.volume = value / 100f;
+    }
 }
 
 

@@ -17,6 +17,11 @@ public class LoginRegisterUIManager : MonoBehaviour
     public TMP_InputField loginPasswordInput;
     public GameObject loginErrorText;
 
+    [Header("Password Visibility Buttons")]
+    public GameObject seePasswordButton;
+    public GameObject hidePasswordButton;
+
+
     [Header("Login Options")]
     public Toggle rememberMeToggle;
 
@@ -26,6 +31,13 @@ public class LoginRegisterUIManager : MonoBehaviour
     public TMP_InputField registerConfirmPasswordInput;
     public GameObject registerErrorEmailExistsText;
     public GameObject registerErrorPasswordMismatchText;
+
+    [Header("Register Password Toggles")]
+    public GameObject seePasswordButton1;
+    public GameObject hidePasswordButton1;
+
+    public GameObject seePasswordButton2;
+    public GameObject hidePasswordButton2;
 
     [Header("Forgot password References")]
     public TMP_InputField forgotPasswordEmailInput;
@@ -49,11 +61,28 @@ public class LoginRegisterUIManager : MonoBehaviour
         registerErrorPasswordMismatchText.SetActive(false);
         successPopup.SetActive(false);
 
+        hidePasswordButton.SetActive(true);
+        seePasswordButton.SetActive(false);
+        loginPasswordInput.contentType = TMP_InputField.ContentType.Password;
+        loginPasswordInput.ForceLabelUpdate();
+
+        registerPasswordInput.contentType = TMP_InputField.ContentType.Password;
+        registerConfirmPasswordInput.contentType = TMP_InputField.ContentType.Password;
+    
+        hidePasswordButton1.SetActive(true);
+        seePasswordButton1.SetActive(false);
+    
+        hidePasswordButton2.SetActive(true);
+        seePasswordButton2.SetActive(false);
+    
+        registerPasswordInput.ForceLabelUpdate();
+        registerConfirmPasswordInput.ForceLabelUpdate();
+
         if (PlayerPrefs.GetInt("rememberMe", 0) == 1)
         {
             string savedEmail = PlayerPrefs.GetString("userEmail");
             loginEmailInput.text = savedEmail;
-            loginPasswordInput.text = "********";
+            loginPasswordInput.text = PlayerPrefs.GetString("userPassword");;
             rememberMeToggle.isOn = true;
         }
     }
@@ -69,6 +98,9 @@ public class LoginRegisterUIManager : MonoBehaviour
     public void OpenLoginPanel()
     {
         registerPanel.SetActive(false);
+        registerEmailInput.text = "";
+        registerPasswordInput.text = "";
+        registerConfirmPasswordInput.text = "";
         loginPanel.SetActive(true);
     }
 
@@ -112,12 +144,14 @@ public class LoginRegisterUIManager : MonoBehaviour
             {
                 PlayerPrefs.SetString("userEmail", email);
                 PlayerPrefs.SetString("userToken", response.token);
+                PlayerPrefs.SetString("userPassword", password);
                 PlayerPrefs.SetInt("rememberMe", 1);
                 PlayerPrefs.Save();
             }
 
             PlayerPrefs.SetString("sessionEmail", email);
             PlayerPrefs.SetString("sessionToken", response.token);
+            PlayerPrefs.SetString("sessionPassword", password);
             PlayerPrefs.Save();
             SceneManager.LoadScene("MainMenu");
         }
@@ -154,6 +188,22 @@ public class LoginRegisterUIManager : MonoBehaviour
             Debug.LogWarning("Token login failed: " + request.downloadHandler.text);
             loginErrorText.SetActive(true);
         }
+    }
+
+    public void OnSeePasswordClicked()
+    {
+        seePasswordButton.SetActive(false);
+        hidePasswordButton.SetActive(true);
+        loginPasswordInput.contentType = TMP_InputField.ContentType.Password;
+        loginPasswordInput.ForceLabelUpdate();
+    }
+
+    public void OnHidePasswordClicked()
+    {
+        seePasswordButton.SetActive(true);
+        hidePasswordButton.SetActive(false);
+        loginPasswordInput.contentType = TMP_InputField.ContentType.Standard;
+        loginPasswordInput.ForceLabelUpdate();
     }
 
 
@@ -216,6 +266,43 @@ public class LoginRegisterUIManager : MonoBehaviour
         successPopup.SetActive(false);
     }
 
+    public void OnSeePasswordRegister1Clicked()
+    {
+        registerPasswordInput.contentType = TMP_InputField.ContentType.Password;
+        registerPasswordInput.ForceLabelUpdate();
+
+        seePasswordButton1.SetActive(false);
+        hidePasswordButton1.SetActive(true);
+    }
+
+    public void OnHidePasswordRegister1Clicked()
+    {
+        registerPasswordInput.contentType = TMP_InputField.ContentType.Standard;
+        registerPasswordInput.ForceLabelUpdate();
+
+        hidePasswordButton1.SetActive(false);
+        seePasswordButton1.SetActive(true);
+    }
+
+    public void OnSeePasswordRegister2Clicked()
+    {
+        registerConfirmPasswordInput.contentType = TMP_InputField.ContentType.Password;
+        registerConfirmPasswordInput.ForceLabelUpdate();
+
+        seePasswordButton2.SetActive(false);
+        hidePasswordButton2.SetActive(true);
+    }
+
+    public void OnHidePasswordRegister2Clicked()
+    {
+        registerConfirmPasswordInput.contentType = TMP_InputField.ContentType.Standard;
+        registerConfirmPasswordInput.ForceLabelUpdate();
+
+        hidePasswordButton2.SetActive(false);
+        seePasswordButton2.SetActive(true);
+    }
+
+
     // ==== Placeholder pentru alte butoane ====
     public void OnRememberMeToggled()
     {
@@ -229,6 +316,7 @@ public class LoginRegisterUIManager : MonoBehaviour
             //Debug.Log("forget");
             PlayerPrefs.DeleteKey("userEmail");
             PlayerPrefs.DeleteKey("userToken");
+            PlayerPrefs.DeleteKey("userPassword");
             PlayerPrefs.SetInt("rememberMe", 0);
             if (loginPasswordInput.text == "********")
                 loginPasswordInput.text = "";
@@ -270,8 +358,8 @@ public class LoginRegisterUIManager : MonoBehaviour
             emailNotFoundText.SetActive(false);
             passwordResetMessage.SetActive(true);
 
-            submitButton.SetActive(false);
-            backButton.SetActive(true);
+            //submitButton.SetActive(false);
+            //backButton.SetActive(true);
         }
         else
         {
@@ -291,8 +379,8 @@ public class LoginRegisterUIManager : MonoBehaviour
     {
         emailNotFoundText.SetActive(false);
         passwordResetMessage.SetActive(false);
-        submitButton.SetActive(true);
-        backButton.SetActive(false);
+        //submitButton.SetActive(true);
+        //backButton.SetActive(false);
         forgotPasswordEmailInput.text = "";
 
         forgotPasswordPanel.SetActive(false);

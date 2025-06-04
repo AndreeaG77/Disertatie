@@ -44,12 +44,12 @@ public class FurnitureMenu : MonoBehaviour
                 TextMeshProUGUI priceText = priceTagTransform.GetComponent<TextMeshProUGUI>();
                 if (priceText != null)
                 {
-                    if (item.category == "Rooms")
+                    /*if (item.category == "Rooms")
                     {
                         priceTagTransform.gameObject.SetActive(false);
                     }
-                    else
-                        priceText.text = item.price;
+                    else*/
+                    priceText.text = item.price;
                 }
             }
 

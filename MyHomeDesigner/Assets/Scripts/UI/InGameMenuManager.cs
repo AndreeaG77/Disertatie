@@ -22,6 +22,7 @@ public class InGameMenuManager : MonoBehaviour
     //public GameObject soundOffIcon;
 
     [Header("Buttons")]
+    public Button userGuideButton;
     public Button settingsButton;
     public Button saveButton;
     public Button exitButton;
@@ -45,6 +46,12 @@ public class InGameMenuManager : MonoBehaviour
 
     public RoomTotalManager roomTotalManager;
 
+    [Header("User Guide")]
+    public GameObject userGuidePanelStart;
+    public GameObject userGuidePanelMenu;
+    public GameObject closeUserGuideButton;
+    public GameObject backFromUserGuideButton;
+
 
     void Start()
     {
@@ -61,6 +68,9 @@ public class InGameMenuManager : MonoBehaviour
         menuPanel.SetActive(false);
         settingsPanel.SetActive(false);
         buttonsPanel.SetActive(true);
+        userGuidePanelStart.SetActive(true);
+        userGuidePanelMenu.SetActive(false);
+        saveProjectPanel.SetActive(false);
 
         GameObject musicManager = GameObject.Find("MusicManager");
         if (musicManager != null)
@@ -93,10 +103,15 @@ public class InGameMenuManager : MonoBehaviour
 
                 settingsPanel.SetActive(false);
                 buttonsPanel.SetActive(true);
+                userGuidePanelMenu.SetActive(false);
+                userGuidePanelStart.SetActive(false);
+                saveProjectPanel.SetActive(false);
 
                 roomTotalManager.totalsAreShown = true;
                 roomTotalButton.gameObject.SetActive(false);
                 hideTotalButton.gameObject.SetActive(false);
+
+                UIBlocker.IsUIBlockingFurniture = true;
             }
             else
             {
@@ -105,6 +120,8 @@ public class InGameMenuManager : MonoBehaviour
                     roomTotalManager.totalsAreShown = false;
                     roomTotalButton.gameObject.SetActive(true);
                 }
+                UIBlocker.IsUIBlockingFurniture = false;
+
             }
         }
     }
@@ -279,6 +296,23 @@ public class InGameMenuManager : MonoBehaviour
 
         if (musicSource != null)
             musicSource.volume = value / 100f;
+    }
+
+    public void OnCloseUserGuideStartClicked()
+    {
+        userGuidePanelStart.SetActive(false);
+    }
+
+    public void OnUserGuideClicked()
+    {
+        buttonsPanel.SetActive(false);
+        userGuidePanelMenu.SetActive(true);
+    }
+
+    public void OnBackFromUserGuideClicked()
+    {
+        userGuidePanelMenu.SetActive(false);
+        buttonsPanel.SetActive(true);
     }
 
 }
