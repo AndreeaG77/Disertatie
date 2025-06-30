@@ -138,7 +138,6 @@ public class LoginRegisterUIManager : MonoBehaviour
         {
 
             LoginResponse response = JsonUtility.FromJson<LoginResponse>(request.downloadHandler.text);
-            Debug.Log("JWT Token: " + response.token);
 
             if (rememberMeToggle.isOn)
             {
@@ -214,7 +213,7 @@ public class LoginRegisterUIManager : MonoBehaviour
         string password = registerPasswordInput.text;
         string confirmPassword = registerConfirmPasswordInput.text;
 
-        // Reset erori
+        // Errors reset
         registerErrorEmailExistsText.SetActive(false);
         registerErrorPasswordMismatchText.SetActive(false);
 
@@ -245,6 +244,9 @@ public class LoginRegisterUIManager : MonoBehaviour
         if (request.result == UnityWebRequest.Result.Success)
         {
             registerPanel.SetActive(false);
+            registerEmailInput.text = "";
+            registerPasswordInput.text = "";
+            registerConfirmPasswordInput.text = "";
             loginPanel.SetActive(true);
             StartCoroutine(ShowSuccessPopup());
         }
@@ -302,18 +304,14 @@ public class LoginRegisterUIManager : MonoBehaviour
         seePasswordButton2.SetActive(true);
     }
 
-
-    // ==== Placeholder pentru alte butoane ====
     public void OnRememberMeToggled()
     {
         if (rememberMeToggle.isOn)
         {
-            //Debug.Log("remember me");
             PlayerPrefs.SetInt("rememberMe", 1);
         }
         else
         {
-            //Debug.Log("forget");
             PlayerPrefs.DeleteKey("userEmail");
             PlayerPrefs.DeleteKey("userToken");
             PlayerPrefs.DeleteKey("userPassword");
@@ -358,8 +356,6 @@ public class LoginRegisterUIManager : MonoBehaviour
             emailNotFoundText.SetActive(false);
             passwordResetMessage.SetActive(true);
 
-            //submitButton.SetActive(false);
-            //backButton.SetActive(true);
         }
         else
         {
@@ -379,8 +375,6 @@ public class LoginRegisterUIManager : MonoBehaviour
     {
         emailNotFoundText.SetActive(false);
         passwordResetMessage.SetActive(false);
-        //submitButton.SetActive(true);
-        //backButton.SetActive(false);
         forgotPasswordEmailInput.text = "";
 
         forgotPasswordPanel.SetActive(false);
@@ -395,7 +389,7 @@ public class LoginRegisterUIManager : MonoBehaviour
 
     public void OnDownloadAppClicked()
     {
-        Application.OpenURL("https://drive.google.com/uc?export=download&id=1rP0YbrpWF0v3UbU3RWa6okWrJ5lkQut4");
+        Application.OpenURL("https://drive.google.com/uc?export=download&id=1kfnjRKD7QGf4mIaktbxJ9V0mDyJiBUQS");
     }
 
 

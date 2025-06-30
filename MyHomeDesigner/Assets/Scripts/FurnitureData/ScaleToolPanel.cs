@@ -45,7 +45,13 @@ public class ScaleToolPanel : MonoBehaviour
 
         if (ViewState.CurrentMode == ViewMode.Mode2D)
         {
-            float offsetZ = 0.7f + targetObject.transform.localScale.z * 0.4f;
+            //float offsetZ = 0.7f + targetObject.transform.localScale.z * 0.5f;
+            //worldPos = targetObject.transform.position + new Vector3(0, 0, offsetZ);
+            Renderer renderer = targetObject.GetComponent<Renderer>();
+            float halfLengthZ = renderer.bounds.size.z * 0.5f;
+            float extraOffset = 0.5f;
+
+            float offsetZ = halfLengthZ + extraOffset;
             worldPos = targetObject.transform.position + new Vector3(0, 0, offsetZ);
         }
         else
@@ -53,9 +59,9 @@ public class ScaleToolPanel : MonoBehaviour
             Collider col = targetObject.GetComponent<Collider>();
             if (col != null)
             {
-                Vector3 topPoint = col.bounds.max;
-                float offset = 0.5f;
-                worldPos = new Vector3(topPoint.x, topPoint.y + offset, topPoint.z);
+                Bounds bounds = col.bounds;
+                float extraOffset = 0.6f;
+                worldPos = bounds.center + Vector3.up * (bounds.extents.y + extraOffset);
             }
             else
             {

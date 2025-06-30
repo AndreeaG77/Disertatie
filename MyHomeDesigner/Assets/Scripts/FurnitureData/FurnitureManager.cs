@@ -18,7 +18,7 @@ public class FurnitureManager : MonoBehaviour
 
     void LoadFurnitureFromResources()
     {
-        string[] categories = { "Rooms", "Doors", "Windows", "Kitchen", "LivingRoom", "Bedroom", "Bathroom", "Miscellaneos" };
+        string[] categories = { "Rooms", "Doors", "Windows", "Kitchen", "LivingRoom", "Bedroom", "Bathroom", "Miscellaneous" };
 
         foreach (string category in categories)
         {
@@ -32,10 +32,9 @@ public class FurnitureManager : MonoBehaviour
                 string price = FurniturePriceDatabase.GetPrice(category, prefab.name);
                 if (category == "Rooms")
                     price = "-";
-                FurnitureItem furnitureItem = new FurnitureItem(prefab.name, category, prefab, matchingThumbnail, DeterminePlacementType(category), price);
-                //FurnitureItem furnitureItem = new FurnitureItem(prefab.name, category, prefab, matchingThumbnail, DeterminePlacementType(category));
+                FurnitureItem furnitureItem = new FurnitureItem(prefab.name, category, prefab, matchingThumbnail, DeterminePlacementType(prefab), price);
 
-                    furnitureList.Add(furnitureItem);
+                furnitureList.Add(furnitureItem);
                 allFurnitureItems.Add(furnitureItem);
             }
 
@@ -46,11 +45,6 @@ public class FurnitureManager : MonoBehaviour
         }
 
     }
-
-    //public List<FurnitureItem> GetAllFurniture()
-    //{
-    //   return new List<FurnitureItem>(allFurnitureItems);
-    //}
 
     public List<FurnitureItem> GetAllFurniture()
     {
@@ -65,12 +59,6 @@ public class FurnitureManager : MonoBehaviour
             return true;
         });
     }
-
-
-    //public List<FurnitureItem> GetFurnitureByCategory(string category)
-    //{
-    //    return categorizedFurniture.ContainsKey(category) ? new List<FurnitureItem>(categorizedFurniture[category]) : new List<FurnitureItem>();
-    //}
 
     public List<FurnitureItem> GetFurnitureByCategory(string category)
     {
@@ -89,44 +77,35 @@ public class FurnitureManager : MonoBehaviour
         });
     }
 
-
-    //public List<FurnitureItem> SearchFurniture(string searchText)
-    //{
-    //    searchText = searchText.ToLower();
-    //    return allFurnitureItems.FindAll(item => item.name.Trim().ToLower().StartsWith(searchText));
-    //}
-
     public List<FurnitureItem> SearchFurniture(string searchText)
     {
         searchText = searchText.ToLower();
-    
+
         return allFurnitureItems.FindAll(item =>
         {
             bool matches = item.name.Trim().ToLower().StartsWith(searchText);
-    
+
             if (ViewState.CurrentMode == ViewMode.Mode2D)
                 return matches && item.placementType != PlacementType.Window && item.placementType != PlacementType.Door;
-    
+
             if (ViewState.CurrentMode == ViewMode.Mode3D)
                 return matches && item.placementType != PlacementType.Room;
-    
+
             return matches;
         });
     }
-
-
-    private PlacementType DeterminePlacementType(string category)
-{
-    switch (category.ToLower())
+    
+    private PlacementType DeterminePlacementType(GameObject prefab)
     {
-        case "rooms":
+        int layer = prefab.layer;
+
+        if (layer == LayerMask.NameToLayer("Room"))
             return PlacementType.Room;
-        case "windows":
-            return PlacementType.Window;
-        case "doors":
+        if (layer == LayerMask.NameToLayer("Door"))
             return PlacementType.Door;
-        default:
-            return PlacementType.Furniture;
+        if (layer == LayerMask.NameToLayer("Window"))
+            return PlacementType.Window;
+
+        return PlacementType.Furniture;
     }
-}
 }

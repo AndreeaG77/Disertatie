@@ -4,7 +4,6 @@ public class Camera3DController : MonoBehaviour
 {
     public float moveSpeed = 5f;
     public float lookSensitivity = 2f;
-
     private float rotationX = 0f;
     private float rotationY = 0f;
     private Rigidbody rb;

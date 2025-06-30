@@ -18,8 +18,6 @@ public class InGameMenuManager : MonoBehaviour
     [Header("Audio Settings")]
     public Slider volumeSlider;
     public TMP_Text volumeValueText;
-    //public GameObject soundOnIcon;
-    //public GameObject soundOffIcon;
 
     [Header("Buttons")]
     public Button userGuideButton;
@@ -41,8 +39,6 @@ public class InGameMenuManager : MonoBehaviour
     public TMP_InputField projectNameInput;
     public GameObject savedText;
     public Button changeNameButton;
-
-    //private bool isEditingProjectName = false;
 
     public RoomTotalManager roomTotalManager;
 
@@ -83,6 +79,9 @@ public class InGameMenuManager : MonoBehaviour
             volumeSlider.value = initialVolume;
             UpdateVolumeUI(initialVolume);
         }
+
+        UIBlocker.IsUIBlockingFurniture = false;
+        Debug.Log("UIBlocker set FALSE by in game manager");
     }
 
     void Update()
@@ -108,10 +107,12 @@ public class InGameMenuManager : MonoBehaviour
                 saveProjectPanel.SetActive(false);
 
                 roomTotalManager.totalsAreShown = true;
+                roomTotalManager.DestroyAllLabelsOnly();
                 roomTotalButton.gameObject.SetActive(false);
                 hideTotalButton.gameObject.SetActive(false);
 
                 UIBlocker.IsUIBlockingFurniture = true;
+                Debug.Log("UIBlocker set TRUE by in game manager");
             }
             else
             {
@@ -121,6 +122,7 @@ public class InGameMenuManager : MonoBehaviour
                     roomTotalButton.gameObject.SetActive(true);
                 }
                 UIBlocker.IsUIBlockingFurniture = false;
+                Debug.Log("UIBlocker set FALSE by in game manager");
 
             }
         }
@@ -167,12 +169,20 @@ public class InGameMenuManager : MonoBehaviour
                 continue;
             if (obj.scene.IsValid() && obj.scene.isLoaded && IsSavable(obj))
             {
+                SelectableFurniture furniture = obj.GetComponent<SelectableFurniture>();
+                string price = "-";
+                if (furniture != null)
+                {
+                    price = furniture.price;
+                }
+
                 dataList.Add(new SceneObjectData
                 {
                     prefabName = obj.name.Replace("(Clone)", "").Trim(),
                     position = obj.transform.position,
                     rotation = obj.transform.rotation,
-                    scale = obj.transform.localScale
+                    scale = obj.transform.localScale,
+                    price = price
                 });
             }
         }
@@ -191,7 +201,6 @@ public class InGameMenuManager : MonoBehaviour
     public void OnChangeProjectNameClicked()
     {
         projectNameInput.interactable = true;
-        //isEditingProjectName = true;
     }
 
     public void OnBackFromSaveProject()
@@ -233,7 +242,6 @@ public class InGameMenuManager : MonoBehaviour
 
     IEnumerator SendProjectToBackend(string json)
     {
-        //string url = "http://localhost:3000/api/projects/save";
         string url = "https://disertatie-backend.onrender.com/api/projects/save";
         string token = PlayerPrefs.GetString("sessionToken", "");
 

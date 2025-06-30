@@ -31,7 +31,6 @@ public class RoomButtonGenerator : MonoBehaviour
     private void HandleRoomRegistered(RoomManager.RoomData data)
     {
         GameObject btn = Instantiate(roomButtonPrefab, buttonParent);
-        //btn.GetComponent<RoomButtonUI>().Initialize(data.roomName, data.roomTransform);
         btn.GetComponent<RoomButtonUI>().Initialize(data);
         roomButtons.Add(btn);
 

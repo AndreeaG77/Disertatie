@@ -5,23 +5,24 @@ using System.Collections;
 
 public class FurnitureDragHandler : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDragHandler
 {
-    public FurnitureItem furnitureItem; 
-    public Image dragPreviewImage;      
-    public Canvas canvas;              
+    public FurnitureItem furnitureItem;
+    public Image dragPreviewImage;
+    public Canvas canvas;
     private GameObject previewInstance;
     public Material highlightMaterial;
     private GameObject highlightBox;
     private GameObject validWallForDoor = null;
+    private Quaternion originalRotation;
 
     public void OnBeginDrag(PointerEventData eventData)
     {
-        //FurnitureManipulator.Instance.ClearMode();
 
         if (furnitureItem == null || furnitureItem.thumbnail == null)
             return;
 
 
-        previewInstance = Instantiate(furnitureItem.prefab);    
+        previewInstance = Instantiate(furnitureItem.prefab);
+        originalRotation = furnitureItem.prefab.transform.rotation;
         previewInstance.layer = LayerMask.NameToLayer("Preview");
         foreach (Transform child in previewInstance.transform)
         {
@@ -31,9 +32,8 @@ public class FurnitureDragHandler : MonoBehaviour, IBeginDragHandler, IDragHandl
                 grandChild.gameObject.layer = LayerMask.NameToLayer("Preview");
             }
         }
-                //SetTransparentMaterial(previewInstance);
         highlightBox = GameObject.CreatePrimitive(PrimitiveType.Cube);
-        Destroy(highlightBox.GetComponent<Collider>()); 
+        Destroy(highlightBox.GetComponent<Collider>());
         highlightBox.name = "HighlightBox";
         highlightBox.GetComponent<MeshRenderer>().material = Instantiate(highlightMaterial);
         highlightBox.transform.SetParent(previewInstance.transform);
@@ -55,16 +55,10 @@ public class FurnitureDragHandler : MonoBehaviour, IBeginDragHandler, IDragHandl
     {
         if (previewInstance == null)
             return;
-        //Vector3 pos = SnapToGrid(GetWorldPositionFromMouse(), 1f);
 
         Vector3 pos = GetWorldPositionFromMouse();
 
-        //if (furnitureItem.placementType == PlacementType.Furniture)
-        //{
-        //    SnapPreviewToFloor();
-        //}
-
-        if (furnitureItem.placementType == PlacementType.Room) //|| furnitureItem.placementType == PlacementType.Furniture)
+        if (furnitureItem.placementType == PlacementType.Room)
         {
             pos = SnapToGrid(pos, 1f);
         }
@@ -97,7 +91,6 @@ public class FurnitureDragHandler : MonoBehaviour, IBeginDragHandler, IDragHandl
 
         if (highlightBox != null)
         {
-            //Color color = overlaps ? new Color(1f, 0f, 0f, 0.3f) : new Color(1f, 1f, 1f, 0.3f);
             Color color = overlaps ? new Color(1f, 0f, 0f, 0.3f) : new Color(0f, 1f, 0f, 0.3f);
             highlightBox.GetComponent<MeshRenderer>().material.color = color;
         }
@@ -109,7 +102,7 @@ public class FurnitureDragHandler : MonoBehaviour, IBeginDragHandler, IDragHandl
 
         if (ViewState.CurrentMode == ViewMode.Mode2D)
         {
-            GameObject room = GetRoomUnderCursor(pos);
+            GameObject room = GetRoomUnderCursor3D(pos);
             if (room != null)
             {
                 float y = room.transform.position.y;
@@ -124,14 +117,13 @@ public class FurnitureDragHandler : MonoBehaviour, IBeginDragHandler, IDragHandl
             GameObject room = GetRoomUnderCursor3D(pos);
             if (room != null)
             {
-                bool overlaps = IsFurnitureOverlapping(pos);
+                bool overlaps = IsFurnitureColliding3D(pos);
                 valid = !overlaps;
             }
         }
 
         if (highlightBox != null)
         {
-            //Color color = valid ? new Color(1f, 1f, 1f, 0.3f) : new Color(1f, 0f, 0f, 0.3f);
             Color color = valid ? new Color(0f, 1f, 0f, 0.3f) : new Color(1f, 0f, 0f, 0.3f);
             highlightBox.GetComponent<MeshRenderer>().material.color = color;
         }
@@ -147,9 +139,18 @@ public class FurnitureDragHandler : MonoBehaviour, IBeginDragHandler, IDragHandl
             previewInstance.transform.position = snappedPos;
             previewInstance.transform.rotation = Quaternion.LookRotation(-wall.transform.forward);
 
+            Vector3 extents = previewInstance.GetComponent<Renderer>().bounds.extents;
+            float offsetAmount = 0.65f;
+            Vector3 adjustedExtents = new Vector3(
+                extents.x + offsetAmount,
+                extents.y,
+                extents.z 
+            );
+
             Collider[] overlaps = Physics.OverlapBox(
                 previewInstance.transform.position,
-                previewInstance.GetComponent<Renderer>().bounds.extents,
+                //previewInstance.GetComponent<Renderer>().bounds.extents,
+                adjustedExtents,
                 previewInstance.transform.rotation
             );
 
@@ -178,7 +179,6 @@ public class FurnitureDragHandler : MonoBehaviour, IBeginDragHandler, IDragHandl
 
         if (highlightBox != null)
         {
-            //Color color = valid ? new Color(1f, 1f, 1f, 0.3f) : new Color(1f, 0f, 0f, 0.3f);
             Color color = valid ? new Color(0f, 1f, 0f, 0.3f) : new Color(1f, 0f, 0f, 0.3f);
             highlightBox.GetComponent<MeshRenderer>().material.color = color;
         }
@@ -196,11 +196,26 @@ public class FurnitureDragHandler : MonoBehaviour, IBeginDragHandler, IDragHandl
         {
             Vector3 snapPos = GetSnappedWindowPosition(wall, pos);
             previewInstance.transform.position = snapPos;
-            previewInstance.transform.rotation = Quaternion.LookRotation(-wall.transform.forward);
+            Quaternion wallRotation = Quaternion.LookRotation(-wall.transform.forward);
+            previewInstance.transform.rotation = wallRotation * originalRotation;
+
+            Vector3 extents = previewInstance.GetComponent<Renderer>().bounds.extents;
+            float offsetAmount = 0.6f;
+            Vector3 adjustedExtents = new Vector3(
+                extents.x + offsetAmount,
+                extents.y,
+                extents.z 
+            );
+
+            BoxCollider collider = previewInstance.GetComponent<BoxCollider>();
+            Vector3 halfExtents = Vector3.Scale(collider.size * 0.5f, previewInstance.transform.lossyScale);
+
 
             Collider[] overlaps = Physics.OverlapBox(
                 previewInstance.transform.position,
-                previewInstance.GetComponent<Renderer>().bounds.extents,
+                //previewInstance.GetComponent<Renderer>().bounds.extents,
+                //adjustedExtents,
+                halfExtents,
                 previewInstance.transform.rotation
             );
 
@@ -235,11 +250,7 @@ public class FurnitureDragHandler : MonoBehaviour, IBeginDragHandler, IDragHandl
     private Vector3 GetWorldPositionFromMouse()
     {
         Vector3 mousePos = Input.mousePosition;
-        //mousePos.z = Camera.main.nearClipPlane + 10f; // distanță față de cameră
-        //Vector3 worldPos = Camera.main.ScreenToWorldPoint(mousePos);
-        //worldPos.z = 0f; // asigură plasare pe planul corect
-        //return worldPos;
-        float zOffset = ViewState.CurrentMode == ViewMode.Mode3D ? 4f : 12f;
+        float zOffset = ViewState.CurrentMode == ViewMode.Mode3D ? 3f : 12f;
         mousePos.z = Camera.main.nearClipPlane + zOffset;
 
         return Camera.main.ScreenToWorldPoint(mousePos);
@@ -290,7 +301,6 @@ public class FurnitureDragHandler : MonoBehaviour, IBeginDragHandler, IDragHandl
         Vector3 roomCenter = roomInstance.transform.position;
         Vector3 viewPos = roomCenter + new Vector3(0, 1.7f, -1.5f);
 
-        //RoomManager.Instance.RegisterRoom(roomInstance.transform, viewPos);
         RoomManager.Instance.RegisterRoom(roomInstance.transform);
         Destroy(previewInstance);
         if (highlightBox != null) Destroy(highlightBox);
@@ -302,7 +312,7 @@ public class FurnitureDragHandler : MonoBehaviour, IBeginDragHandler, IDragHandl
         GameObject room;
         if (ViewState.CurrentMode == ViewMode.Mode2D)
         {
-            room = GetRoomUnderCursor(worldPos);
+            room = GetRoomUnderCursor3D(worldPos);
         }
         else
         {
@@ -350,34 +360,15 @@ public class FurnitureDragHandler : MonoBehaviour, IBeginDragHandler, IDragHandl
         Destroy(previewInstance);
         if (highlightBox != null) Destroy(highlightBox);
 
-        //GameObject instance = Instantiate(furnitureItem.prefab, worldPos, previewInstance.transform.rotation);
         instance.AddComponent<SelectableFurniture>();
         SelectableFurniture sf = instance.GetComponent<SelectableFurniture>();
         sf.price = furnitureItem.price;
 
     }
 
-    private void SnapPreviewToFloor()
-    {
-        if (previewInstance == null)
-            return;
-
-        Vector3 origin = previewInstance.transform.position + Vector3.up * 1f;
-        Ray downRay = new Ray(origin, Vector3.down);
-
-        if (Physics.Raycast(downRay, out RaycastHit hit, 5f, LayerMask.GetMask("Floor")))
-        {
-            Vector3 snappedPosition = previewInstance.transform.position;
-            snappedPosition.y = hit.point.y;
-            previewInstance.transform.position = snappedPosition;
-        }
-    }
-
-
     IEnumerator SetKinematicAfterLanding(Rigidbody rb)
     {
         yield return new WaitUntil(() => rb.IsSleeping());
-        //yield return new WaitForSeconds(0.5f);
         rb.isKinematic = true;
         rb.useGravity = false;
     }
@@ -416,7 +407,7 @@ public class FurnitureDragHandler : MonoBehaviour, IBeginDragHandler, IDragHandl
         }
 
         GameObject instance = Instantiate(furnitureItem.prefab, pos, previewInstance.transform.rotation);
-        instance.layer = LayerMask.NameToLayer("Door"); // sau setează în editor direct
+        instance.layer = LayerMask.NameToLayer("Door");
 
         Destroy(previewInstance);
         if (highlightBox != null) Destroy(highlightBox);
@@ -482,7 +473,7 @@ public class FurnitureDragHandler : MonoBehaviour, IBeginDragHandler, IDragHandl
         foreach (Renderer rend in renderers)
         {
             bounds.Encapsulate(rend.bounds);
-        }   
+        }
 
         return bounds;
     }
@@ -491,10 +482,9 @@ public class FurnitureDragHandler : MonoBehaviour, IBeginDragHandler, IDragHandl
     {
         pos.x = Mathf.Round(pos.x / cellSize) * cellSize;
         pos.y = Mathf.Round(pos.y / cellSize) * cellSize;
-        //pos.z = 0f; // dacă grila e în plan XY
         return pos;
     }
-    
+
 
     private bool IsPlacementOverlapping(Vector3 pos)
     {
@@ -503,24 +493,46 @@ public class FurnitureDragHandler : MonoBehaviour, IBeginDragHandler, IDragHandl
         Vector3 checkCenter = pos + bounds.center - previewInstance.transform.position;
 
         int previewLayer = LayerMask.NameToLayer("Preview");
-        //int previewLayer = LayerMask.NameToLayer("Preview");
         int mask = ~(1 << previewLayer);
 
         return Physics.CheckBox(checkCenter, checkSize, previewInstance.transform.rotation, mask);
-    }    
+    }
     bool IsFurnitureOverlapping(Vector3 position)
     {
         Ray ray = new Ray(position + Vector3.up * 3f, Vector3.down);
-        float distance = 3.5f;
+        float distance = 0.5f;
         int furnitureMask = LayerMask.GetMask("Furniture");
 
         return Physics.Raycast(ray, distance, furnitureMask);
     }
 
+    private bool IsFurnitureColliding3D(Vector3 pos)
+    {
+        Bounds bounds = previewInstance.GetComponent<Renderer>().bounds;
+
+        Vector3 center = pos + bounds.center - previewInstance.transform.position;
+        Vector3 halfExtents = bounds.extents;
+
+        int previewLayer = LayerMask.NameToLayer("Preview");
+        int mask = LayerMask.GetMask("Furniture");
+
+        Collider[] colliders = Physics.OverlapBox(center, halfExtents, previewInstance.transform.rotation, mask);
+
+        foreach (var col in colliders)
+        {
+            if (!col.transform.IsChildOf(previewInstance.transform))
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+
     private GameObject GetRoomUnderCursor(Vector3 pos)
     {
-        Ray ray = new Ray(pos + Vector3.up * 5f, Vector3.down); 
-        //mask = (LayerMask.GetMask("Room") || LayerMask.GetMask("Floor"));
+        Ray ray = new Ray(pos + Vector3.up * 5f, Vector3.down);
         if (Physics.Raycast(ray, out RaycastHit hit, 10f, (LayerMask.GetMask("Room"))))
         {
             return hit.collider.gameObject;
@@ -534,10 +546,8 @@ public class FurnitureDragHandler : MonoBehaviour, IBeginDragHandler, IDragHandl
         Bounds bounds = previewInstance.GetComponent<Renderer>().bounds;
         Vector3 extents = bounds.extents;
 
-        
-        Vector3 offsetPos = worldPos + Vector3.up * extents.y + Vector3.up * 0.01f;
 
-        //Vector3 offsetPos = worldPos + Vector3.up * 0.5f;
+        Vector3 offsetPos = worldPos + Vector3.up * extents.y + Vector3.up * 0.01f;
 
         Collider[] overlapping = Physics.OverlapBox(
             offsetPos,
@@ -548,35 +558,19 @@ public class FurnitureDragHandler : MonoBehaviour, IBeginDragHandler, IDragHandl
 
         if (overlapping.Length > 0)
         {
-            //Debug.Log("Atinge perete sau podea: " + overlapping[0].name);
             return null;
         }
 
-        return RoomManager.Instance.GetRoomByIndex(0).roomTransform.gameObject;;
+        return RoomManager.Instance.GetRoomByIndex(0).roomTransform.gameObject; ;
     }
-
-    /*private GameObject GetWallUnderCursor(Vector3 pos)
-    {
-        Ray ray = new Ray(pos + Vector3.up * 5f, Vector3.down);
-        if (Physics.Raycast(ray, out RaycastHit hit, 10f, LayerMask.GetMask("Wall")))
-        {
-            Debug.Log("Perete detectat: " + hit.collider.name);  // ADĂUGAT
-            return hit.collider.gameObject;
-        }
-        Debug.Log("NU a fost detectat niciun perete");  // ADĂUGAT
-        return null;
-    }*/
 
     private GameObject GetWallUnderCursor(Vector3 pos)
     {
-        Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition); // trage din camera, spre scenă
+        Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
         if (Physics.Raycast(ray, out RaycastHit hit, 100f, LayerMask.GetMask("Wall")))
         {
-            //Debug.Log("Perete detectat: " + hit.collider.name);
             return hit.collider.gameObject;
         }
-
-        //Debug.Log("NU a fost detectat niciun perete");
         return null;
     }
 
@@ -586,7 +580,7 @@ public class FurnitureDragHandler : MonoBehaviour, IBeginDragHandler, IDragHandl
         Bounds doorBounds = previewInstance.GetComponent<Renderer>().bounds;
 
         Vector3 snapPos = originalPos;
-        float offset = 0.01f;
+        float offset = 0.2f;
 
         Vector3 dir = (originalPos - wallBounds.center).normalized;
         bool wallIsAlongX = wallBounds.size.x > wallBounds.size.z;
@@ -608,16 +602,9 @@ public class FurnitureDragHandler : MonoBehaviour, IBeginDragHandler, IDragHandl
             snapPos.z = Mathf.Clamp(originalPos.z, wallBounds.min.z + doorBounds.extents.z, wallBounds.max.z - doorBounds.extents.z);
         }
 
-        //snapPos.y = wall.transform.position.y;
-        // Plasare la nivel cu podeaua (baza peretelui)
-        //float wallBottomY = wall.GetComponent<Renderer>().bounds.min.y;
-        //float doorHalfHeight = previewInstance.GetComponent<Renderer>().bounds.extents.y;
-
-        //snapPos.y = wallBottomY + doorHalfHeight;
-
         float doorBottomOffset = previewInstance.GetComponent<Renderer>().bounds.min.y - previewInstance.transform.position.y;
         snapPos.y = wall.GetComponent<Renderer>().bounds.min.y - doorBottomOffset;
-    
+
         return snapPos;
     }
 
@@ -627,7 +614,7 @@ public class FurnitureDragHandler : MonoBehaviour, IBeginDragHandler, IDragHandl
         Bounds windowBounds = previewInstance.GetComponent<Renderer>().bounds;
 
         Vector3 snapPos = originalPos;
-        float offset = 0.01f;
+        float offset = 0.05f;
 
         Vector3 dir = (originalPos - wallBounds.center).normalized;
         bool wallIsAlongX = wallBounds.size.x > wallBounds.size.z;
@@ -648,11 +635,9 @@ public class FurnitureDragHandler : MonoBehaviour, IBeginDragHandler, IDragHandl
             snapPos.x = wallFaceX + Mathf.Sign(dir.x) * (doorHalfWidth + offset);
             snapPos.z = Mathf.Clamp(originalPos.z, wallBounds.min.z + windowBounds.extents.z, wallBounds.max.z - windowBounds.extents.z);
         }
-        //snapPos.y = wall.transform.position.y + wall.GetComponent<Renderer>().bounds.size.y / 2f;
-        //snapPos.y = Mathf.Clamp(originalPos.y, wallBounds.min.y + windowBounds.extents.y, wallBounds.max.y - windowBounds.extents.y);
 
-    
         return snapPos;
     }
+    
 
 }

@@ -3,16 +3,14 @@ using UnityEngine;
 public class SelectableFurniture : MonoBehaviour
 {
     public GameObject assignedRoom;
-    public string price; 
+    public string price;
     void Start()
     {
-        Debug.Log("SelectableFurniture attached to " + gameObject.name);
-        AssignToRoom(); 
+        AssignToRoom();
     }
 
     private void OnMouseDown()
     {
-        Debug.Log("click");
         FurnitureManipulator.Instance.SelectFurniture(this.gameObject);
     }
 
@@ -25,9 +23,14 @@ public class SelectableFurniture : MonoBehaviour
             if (col.gameObject.layer == LayerMask.NameToLayer("Room"))
             {
                 assignedRoom = col.gameObject;
-                Debug.Log($"Obiectul {name} a fost asignat camerei {assignedRoom.name}");
                 break;
             }
         }
     }
+        
+    public void ForceAssignToRoom()
+    {
+        AssignToRoom();
+    }
+
 }

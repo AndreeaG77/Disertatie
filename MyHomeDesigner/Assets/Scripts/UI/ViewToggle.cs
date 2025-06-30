@@ -18,48 +18,6 @@ public class ViewToggle : MonoBehaviour
 
         toggleButton.gameObject.SetActive(false);
     }
-
-    /* public void SwitchTo2D()
-     {
-         mainCamera.transform.position = camera2DPosition.position;
-         mainCamera.transform.rotation = camera2DPosition.rotation;
-
-         Camera.main.orthographic = true;
-         Camera.main.orthographicSize = 12.5f;
-         Camera.main.GetComponent<Camera3DController>().enabled = false;
-         Camera.main.GetComponent<CameraController>().enabled = true;
-
-         Cursor.lockState = CursorLockMode.None;
-         Cursor.visible = true;
-         ViewState.CurrentMode = ViewMode.Mode2D;
-
-         toggleButton.gameObject.SetActive(false);
-
-         foreach (var room in RoomManager.Instance.GetAllRooms())
-         {
-             foreach (Transform t in room.roomTransform.GetComponentsInChildren<Transform>(true))
-             {
-                 if (t.name.Contains("Floor"))
-                 {
-                     Renderer rend = t.GetComponent<Renderer>();
-                     if (rend != null && rend.material != null)
-                     {
-                         Color c = rend.material.color;
-                         c.a = 150 / 255f;
-                         rend.material.color = c;
-                     }
-                 }
-             }
-         }
-
-         FurnitureMenu furnitureMenu = Object.FindFirstObjectByType<FurnitureMenu>();
-         if (furnitureMenu != null)
-         {
-             furnitureMenu.RefreshUI();
-             furnitureMenu.RefreshCategoryButtons("2D");
-         }
-     }
-     */
     
     public void SwitchTo2D()
     {

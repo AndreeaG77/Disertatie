@@ -43,29 +43,7 @@ public class RoomManager : MonoBehaviour
         roomCount++;
         string roomName = "Room " + roomCount;
 
-        /*RoomData data = new RoomData(roomName, roomTransform); 
-        data.viewPosition = viewPosition;
-  
-        allRooms.Add(data);
-
-        Debug.Log($"RoomManager: Registered {roomName} at {roomTransform.position}");
-
-        OnRoomRegistered?.Invoke(data); */
-
         Transform cameraSpawn = roomTransform.Find("CameraSpawn");
-
-        /* if (cameraSpawn != null)
-         {
-             GameObject marker = GameObject.CreatePrimitive(PrimitiveType.Sphere);
-             marker.transform.position = cameraSpawn.position;
-             marker.transform.localScale = Vector3.one * 0.3f;
-             marker.GetComponent<Collider>().enabled = false;
-             marker.GetComponent<MeshRenderer>().material.color = Color.green;
-         }
-         else
-         {
-             Debug.LogWarning($"CameraSpawn NU a fost găsit pentru {roomName}. Se folosește fallback.");
-         }*/
 
         Vector3 viewPosition = cameraSpawn != null
             ? cameraSpawn.position

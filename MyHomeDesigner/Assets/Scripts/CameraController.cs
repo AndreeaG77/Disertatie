@@ -2,17 +2,13 @@ using UnityEngine;
 
 public class CameraController : MonoBehaviour
 {
-    public float moveSpeed = 5f;  // Speed for WASD movement
-    public float dragSpeed = 0.1f;  // Speed for mouse dragging
-    public float zoomSpeed = 5f;  // Speed for zooming
-    public float minZoom = 5f;  // Closest zoom-in level
-    public float maxZoom = 20f;  // Furthest zoom-out level
-
-    public Vector2 gridMin = new Vector2(-20f, -20f);  // Grid lower-left corner
-    public Vector2 gridMax = new Vector2(20f, 20f);  // Grid upper-right corner
-
-    //private Vector3 lastMousePosition;
-    //private bool isDragging = false;
+    public float moveSpeed = 5f; 
+    public float dragSpeed = 0.1f; 
+    public float zoomSpeed = 5f;  
+    public float minZoom = 5f; 
+    public float maxZoom = 20f; 
+    public Vector2 gridMin = new Vector2(0f, 0f);  // Grid lower-left corner
+    public Vector2 gridMax = new Vector2(50f, 40f);  // Grid upper-right corner
     private Camera cam;
 
     void Start()
@@ -24,7 +20,6 @@ public class CameraController : MonoBehaviour
     {
         HandleZoom();
         HandleKeyboardMovement();
-        //HandleMouseDragging();
     }
 
     void HandleZoom()
@@ -35,12 +30,17 @@ public class CameraController : MonoBehaviour
             if (scroll != 0f)
             {
                 cam.orthographicSize -= scroll * zoomSpeed;
-                cam.orthographicSize = Mathf.Clamp(cam.orthographicSize, minZoom, maxZoom);
-                transform.position = ClampPosition(transform.position);  // Reapply clamping after zooming
+                //cam.orthographicSize = Mathf.Clamp(cam.orthographicSize, minZoom, maxZoom);
+                float maxWidthBased = (gridMax.x - gridMin.x) / (2f * cam.aspect);
+                float maxHeightBased = (gridMax.y - gridMin.y) / 2f;
+                float dynamicMaxZoom = Mathf.Min(maxWidthBased, maxHeightBased);
+                
+                cam.orthographicSize = Mathf.Clamp(cam.orthographicSize, minZoom, dynamicMaxZoom);
+
+                transform.position = ClampPosition(transform.position); 
         }
         }
     }
-
     void HandleKeyboardMovement()
     {
         float moveX = 0f;
@@ -71,34 +71,6 @@ public class CameraController : MonoBehaviour
         }
 
     }
-
- /*   void HandleMouseDragging()
-    {
-        if (Input.GetMouseButtonDown(0))
-        {
-            lastMousePosition = Input.mousePosition;
-            isDragging = true;
-        }
-
-        if (Input.GetMouseButtonUp(0))
-        {
-            isDragging = false;
-        }
-
-        if (isDragging)
-        {
-            Vector3 mouseDelta = Input.mousePosition - lastMousePosition;
-
-            float moveX = -mouseDelta.x * dragSpeed;
-            float moveZ = -mouseDelta.y * dragSpeed;
-
-            Vector3 newPosition = transform.position + new Vector3(moveX, 0, moveZ);
-            transform.position = ClampPosition(newPosition);
-
-            lastMousePosition = Input.mousePosition;
-        }
-    } */
-
     Vector3 ClampPosition(Vector3 position)
     {
         float camHeight = cam.orthographicSize;

@@ -91,7 +91,6 @@ public class MainMenuUIManager : MonoBehaviour
         loadSelectedButton.onClick.AddListener(OnLoadSelectedProject);
         backButton.onClick.AddListener(OnBackClicked);
         volumeSlider.onValueChanged.AddListener(UpdateVolumeUI);
-        //saveProjectButton.onClick.AddListener(OnCreateProjectConfirmed);
 
         loadSelectedButton.interactable = false;
         projectsPanel.SetActive(false);
@@ -347,7 +346,6 @@ public class MainMenuUIManager : MonoBehaviour
 
     public void OnSeePasswordClicked()
     {
-        //passwordInput.interactable = true;
         passwordInput.contentType = TMP_InputField.ContentType.Password;
         passwordInput.ForceLabelUpdate();
         passwordInput.interactable = false;
@@ -358,7 +356,6 @@ public class MainMenuUIManager : MonoBehaviour
 
     public void OnHidePasswordClicked()
     {
-        //passwordInput.interactable = true;
         passwordInput.contentType = TMP_InputField.ContentType.Standard;
         passwordInput.ForceLabelUpdate();
         passwordInput.interactable = false;

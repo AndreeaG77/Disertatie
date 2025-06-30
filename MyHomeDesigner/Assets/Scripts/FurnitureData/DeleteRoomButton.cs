@@ -51,11 +51,8 @@ public class DeleteRoomButton : MonoBehaviour
                         }
 
                     }
-
-
                     Destroy(targetRoom);
                 }
-
                 Destroy(gameObject);
             });
         }

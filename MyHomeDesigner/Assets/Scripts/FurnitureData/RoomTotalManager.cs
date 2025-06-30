@@ -8,14 +8,10 @@ public class RoomTotalManager : MonoBehaviour
     public GameObject roomTotalLabelPrefab;
     public Button showTotalButton;
     public Button hideTotalButton;
-    public Transform labelCanvasParent; 
-    //private bool totalsAreShown = false;
+    public Transform labelCanvasParent;
     public RoomTotalManager roomTotalManager;
     public bool totalsAreShown { get; set; }
-
-
-
-    private Dictionary<GameObject, GameObject> roomToLabel = new(); 
+    private Dictionary<GameObject, GameObject> roomToLabel = new();
 
     private void Start()
     {
@@ -79,12 +75,7 @@ public class RoomTotalManager : MonoBehaviour
             GameObject label = Instantiate(roomTotalLabelPrefab, labelCanvasParent);
             FollowRoom follow = label.AddComponent<FollowRoom>();
             follow.roomTransform = room.transform;
-            //label.GetComponent<TextMeshProUGUI>().text = $"{room.name}: {total} €";
             label.GetComponentInChildren<TextMeshProUGUI>().text = $"{total} €";
-
-            //Vector3 labelPos = room.transform.position + new Vector3(0, 0, 3f);
-            //label.transform.position = Camera.main.WorldToScreenPoint(labelPos);
-
             roomToLabel[room] = label;
         }
 
@@ -105,4 +96,16 @@ public class RoomTotalManager : MonoBehaviour
         hideTotalButton.gameObject.SetActive(false);
         totalsAreShown = false;
     }
+    
+    public void DestroyAllLabelsOnly()
+    {
+        foreach (var label in roomToLabel.Values)
+        {
+            if (label != null)
+                Destroy(label);
+        }
+        roomToLabel.Clear();
+        totalsAreShown = true;
+    }
+
 }

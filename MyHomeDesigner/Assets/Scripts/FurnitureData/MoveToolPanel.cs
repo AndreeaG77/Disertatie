@@ -6,8 +6,6 @@ public class MoveToolPanel : MonoBehaviour
     public Button moveXButton;
     public Button moveYButton;
     public Button moveZButton;
-    //public Button backButton;
-
     private GameObject targetObject;
 
     public void Initialize(GameObject target)
@@ -24,14 +22,6 @@ public class MoveToolPanel : MonoBehaviour
         moveXButton.onClick.AddListener(() => FurnitureManipulator.Instance.SetMoveAxis("X"));
         moveYButton.onClick.AddListener(() => FurnitureManipulator.Instance.SetMoveAxis("Y"));
         moveZButton.onClick.AddListener(() => FurnitureManipulator.Instance.SetMoveAxis("Z"));
-
-        /*backButton.onClick.AddListener(() =>
-        {
-            FurnitureManipulator.Instance.SetMoveAxis("Free");
-            FurnitureManipulator.Instance.ClearMode();
-            gameObject.SetActive(false);
-            FindFirstObjectByType<FurnitureToolPanel>().gameObject.SetActive(true);
-        });*/
     }
 
     public void Show(GameObject target)
@@ -48,7 +38,13 @@ public class MoveToolPanel : MonoBehaviour
 
         if (ViewState.CurrentMode == ViewMode.Mode2D)
         {
-            float offsetZ = 0.7f + targetObject.transform.localScale.z * 0.4f;
+            //float offsetZ = 0.7f + targetObject.transform.localScale.z * 0.5f;
+            //worldPos = targetObject.transform.position + new Vector3(0, 0, offsetZ);
+            Renderer renderer = targetObject.GetComponent<Renderer>();
+            float halfLengthZ = renderer.bounds.size.z * 0.5f;
+            float extraOffset = 0.5f;
+
+            float offsetZ = halfLengthZ + extraOffset;
             worldPos = targetObject.transform.position + new Vector3(0, 0, offsetZ);
         }
         else
@@ -56,9 +52,9 @@ public class MoveToolPanel : MonoBehaviour
             Collider col = targetObject.GetComponent<Collider>();
             if (col != null)
             {
-                Vector3 topPoint = col.bounds.max;
-                float offset = 0.5f;
-                worldPos = new Vector3(topPoint.x, topPoint.y + offset, topPoint.z);
+                Bounds bounds = col.bounds;
+                float extraOffset = 0.6f;
+                worldPos = bounds.center + Vector3.up * (bounds.extents.y + extraOffset);
             }
             else
             {

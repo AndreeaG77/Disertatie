@@ -35,7 +35,7 @@
                 case "X": moveAxis = MoveAxis.X; break;
                 case "Y": moveAxis = MoveAxis.Y; break;
                 case "Z": moveAxis = MoveAxis.Z; break;
-                default: moveAxis = MoveAxis.Free; break;
+                case "Free": moveAxis = MoveAxis.Free; break;
             }
         }
 
@@ -60,13 +60,6 @@
         
             Debug.Log("Mobilier selectat: " + furniture.name + " | Tip: " + selectedType);
         }
-
-        /*public void SelectFurniture(GameObject furniture)
-        {
-            selectedFurniture = furniture;
-            //currentMode = ManipulationMode.None;
-            Debug.Log("Mobilier selectat: " + furniture.name);
-        }*/
 
         void Update()
         {
@@ -101,99 +94,6 @@
             }
         }
 
-
-        /*void HandleMovement()
-        {
-
-            if (Input.GetMouseButton(0))
-            {
-                Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
-                int mask = ~(1 << LayerMask.NameToLayer("Room"));
-                if (Physics.Raycast(ray, out RaycastHit hit, 100f, mask))
-                //if (Physics.Raycast(ray, out RaycastHit hit, 100f, LayerMask.GetMask("Room")))
-                {
-                    if (hit.collider.gameObject != selectedFurniture)
-                        return;
-                    Vector3 newPos = hit.point;
-                    newPos.y = selectedFurniture.transform.position.y;
-                    selectedFurniture.transform.position = newPos;
-                }
-            }
-        }*/
-
-        /*void HandleMovement()
-        {
-            if (Input.GetMouseButton(0))
-            {
-                Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
-                int mask = ~(1 << LayerMask.NameToLayer("Room"));
-
-                if (Physics.Raycast(ray, out RaycastHit hit, 100f, mask))
-                {
-                    if (hit.collider.gameObject != selectedFurniture)
-                        return;
-
-                    Vector3 newPos = hit.point;
-                    newPos.y = selectedFurniture.transform.position.y;
-
-                    Rigidbody rb = selectedFurniture.GetComponent<Rigidbody>();
-                    if (rb != null)
-                    {
-                        rb.MovePosition(newPos);
-                    }
-                    else
-                    {
-                        selectedFurniture.transform.position = newPos; // fallback
-                    }
-                }
-            }
-        }*/
-
-        /*void HandleMovement()
-        {
-            if (Input.GetMouseButton(0))
-            {
-                Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
-                int mask = ~(1 << LayerMask.NameToLayer("Room"));
-                if (Physics.Raycast(ray, out RaycastHit hit, 100f, mask))
-                {
-                    if (hit.collider.gameObject != selectedFurniture)
-                        return;
-
-                    Vector3 targetPos = hit.point;
-                    targetPos.y = selectedFurniture.transform.position.y;
-
-                    //Vector3 halfExtents = selectedFurniture.GetComponent<Collider>().bounds.extents;
-
-                    //Collider[] hits = Physics.OverlapBox(targetPos, halfExtents, selectedFurniture.transform.rotation);
-                    BoxCollider col = selectedFurniture.GetComponent<BoxCollider>();
-                    Vector3 size = Vector3.Scale(col.size, selectedFurniture.transform.lossyScale);
-                    Vector3 halfExtents = size * 0.5f;
-
-                    Collider[] hits = Physics.OverlapBox(
-                        targetPos,
-                        halfExtents,
-                        selectedFurniture.transform.rotation
-                    );
-
-                    foreach (var h in hits)
-                    {
-                        if (h.gameObject != selectedFurniture && h.gameObject.layer != LayerMask.NameToLayer("Room") && h.gameObject.layer != LayerMask.NameToLayer("Floor"))
-                        {
-                            Debug.Log("Mutarea ar cauza suprapunere cu: " + h.name);
-                            return;
-                        }
-                    }
-
-                    Rigidbody rb = selectedFurniture.GetComponent<Rigidbody>();
-                    if (rb != null)
-                        rb.MovePosition(targetPos);
-                    else
-                        selectedFurniture.transform.position = targetPos;
-                }
-            }
-        }*/
-
         void HandleMovement()
         {
             if (Input.GetMouseButton(0))
@@ -213,41 +113,6 @@
                         case MoveAxis.X:
                             targetPos = new Vector3(hit.point.x, currentPos.y, currentPos.z);
                             break;
-                        /*case MoveAxis.Y:
-                            targetPos = new Vector3(currentPos.x, hit.point.y, currentPos.z);
-                            break;*/
-                        /*case MoveAxis.Y:
-                            {
-                                Plane plane = new Plane(Vector3.forward, currentPos);
-                                if (plane.Raycast(ray, out float enter))
-                                {
-                                    Vector3 hitPoint = ray.GetPoint(enter);
-                                    targetPos = new Vector3(currentPos.x, hitPoint.y, currentPos.z);
-                                }
-                                else
-                                {
-                                    return; 
-                                }
-                                break;
-                            }
-                        */
-                        /*case MoveAxis.Y:
-                            {
-                                //Plane horizontalPlane = new Plane(Vector3.up, currentPos);
-                                Plane horizontalPlane = new Plane(Camera.main.transform.forward, currentPos);
-                                if (horizontalPlane.Raycast(ray, out float enter))
-                                {
-                                    Vector3 hitPoint = ray.GetPoint(enter);
-                                    float halfHeight = selectedFurniture.GetComponent<Renderer>().bounds.extents.y;
-                                    float minY = 1f + halfHeight;
-                                    targetPos = new Vector3(currentPos.x, Mathf.Max(hitPoint.y, minY + halfHeight), currentPos.z);
-                                }
-                                else
-                                {
-                                    return;
-                                }
-                                break;
-                            }*/
                         case MoveAxis.Y:
                         {
                             Plane yPlane = new Plane(Vector3.right, currentPos); 
@@ -278,7 +143,6 @@
                             break;
                     }
 
-                    // Suprapunere și coliziune
                     BoxCollider col = selectedFurniture.GetComponent<BoxCollider>();
                     Vector3 size = Vector3.Scale(col.size, selectedFurniture.transform.lossyScale);
                     Vector3 halfExtents = size * 0.5f;
@@ -318,39 +182,29 @@
                     Vector3 currentPos = selectedFurniture.transform.position;
                     Vector3 hitPoint = hit.point;
 
-                    //targetPos.y = currentPos.y;    // Blochează Y
-                    //targetPos.z = currentPos.z;    // Blochează Z
-
                     bool wallIsAlongX = Mathf.Abs(selectedFurniture.transform.forward.z) > Mathf.Abs(selectedFurniture.transform.forward.x);
-                    //Vector3 forward = selectedFurniture.transform.TransformDirection(Vector3.forward);
-                    //bool wallIsAlongX = Mathf.Abs(forward.z) > Mathf.Abs(forward.x);
-                    
                     Vector3 targetPos = currentPos;
-                    //Vector3 delta = hit.point - currentPos;
 
                     if (wallIsAlongX)
                     {
                         targetPos.x = hitPoint.x;
-                        //targetPos.x = currentPos.x + delta.x;
                     }
                     else
                     {
                         targetPos.z = hitPoint.z;
-                        //targetPos.z = currentPos.z + delta.z;
                     }
 
                     targetPos.y = currentPos.y;
 
                     BoxCollider col = selectedFurniture.GetComponent<BoxCollider>();
                     Vector3 size = Vector3.Scale(col.size, selectedFurniture.transform.lossyScale);
-                    //Vector3 halfExtents = size * 0.5f;
                     Vector3 halfExtents = col.bounds.extents;
                     Vector3 centerOffset = col.bounds.center - selectedFurniture.transform.position;
 
                     Collider[] hits = Physics.OverlapBox(
                         targetPos + centerOffset,
                         halfExtents,
-                        selectedFurniture.transform.rotation
+                        Quaternion.identity
                     );
 
                     foreach (var h in hits)
@@ -392,9 +246,6 @@
 
                     Vector3 currentPos = selectedFurniture.transform.position;
                     Vector3 hitPoint = hit.point;
-
-                    //targetPos.y = currentPos.y;    // Blochează Y
-                    //targetPos.z = currentPos.z;    // Blochează Z
                     
                     bool wallIsAlongX = Mathf.Abs(selectedFurniture.transform.forward.z) > Mathf.Abs(selectedFurniture.transform.forward.x);
 
@@ -419,7 +270,7 @@
                         targetPos,
                         halfExtents,
                         selectedFurniture.transform.rotation
-                    );
+                    );  
 
                     foreach (var h in hits)
                     {
@@ -451,62 +302,56 @@
             if (Input.GetKey(KeyCode.E))
                 selectedFurniture.transform.Rotate(Vector3.up, 100f * Time.deltaTime);
         }
-
-        /*void HandleScaling()
-        {
-            float scroll = Input.GetAxis("Mouse ScrollWheel");
-            if (scroll != 0f)
-            {
-                Vector3 scale = selectedFurniture.transform.localScale;
-                scale += Vector3.one * scroll;
-                scale = Vector3.Max(scale, Vector3.one * 0.2f);
-                scale = Vector3.Min(scale, Vector3.one * 5f);
-                selectedFurniture.transform.localScale = scale;
-            }
-        }*/
-
-        /*void HandleScaling()
-        {
-            float scroll = Input.GetAxis("Mouse ScrollWheel");
-            if (scroll != 0f)
-            {
-                Vector3 oldScale = selectedFurniture.transform.localScale;
-                Vector3 newScale = oldScale + Vector3.one * scroll;
-
-                newScale = Vector3.Max(newScale, Vector3.one * 0.2f);
-                newScale = Vector3.Min(newScale, Vector3.one * 5f);
-
-                selectedFurniture.transform.localScale = newScale;
-
-                float deltaY = newScale.y - oldScale.y;
-                Vector3 pos = selectedFurniture.transform.position;
-                pos.y += deltaY * 0.5f;
-                selectedFurniture.transform.position = pos;
-            }
-        }*/
-
+        
         void HandleScaling()
         {
             float scroll = Input.GetAxis("Mouse ScrollWheel");
             if (scroll != 0f)
             {
-                float oldBottom = selectedFurniture.GetComponent<Renderer>().bounds.min.y;
-
                 Vector3 oldScale = selectedFurniture.transform.localScale;
                 Vector3 newScale = oldScale + Vector3.one * scroll;
-
                 newScale = ClampScale(newScale);
 
                 selectedFurniture.transform.localScale = newScale;
-
                 float newBottom = selectedFurniture.GetComponent<Renderer>().bounds.min.y;
+                float oldBottom = selectedFurniture.GetComponent<Renderer>().bounds.min.y;
                 float delta = oldBottom - newBottom;
 
-                Vector3 pos = selectedFurniture.transform.position;
-                pos.y += delta;
-                selectedFurniture.transform.position = pos;
+                Vector3 testPosition = selectedFurniture.transform.position;
+                testPosition.y += delta;
+
+                BoxCollider col = selectedFurniture.GetComponent<BoxCollider>();
+                Vector3 size = Vector3.Scale(col.size, selectedFurniture.transform.lossyScale);
+                Vector3 halfExtents = size * 0.5f;
+
+                Collider[] hits = Physics.OverlapBox(
+                    testPosition,
+                    halfExtents,
+                    selectedFurniture.transform.rotation
+                );
+
+                bool collides = false;
+                foreach (var h in hits)
+                {
+                    if (h.gameObject != selectedFurniture &&
+                        h.gameObject.layer != LayerMask.NameToLayer("Room") &&
+                        h.gameObject.layer != LayerMask.NameToLayer("Floor"))
+                    {
+                        collides = true;
+                        break;
+                    }
+                }
+
+                if (collides)
+                {
+                    selectedFurniture.transform.localScale = oldScale;
+                    return;
+                }
+
+                selectedFurniture.transform.position = testPosition;
             }
         }
+
 
 
         void HandleUniformScaling()
@@ -520,48 +365,64 @@
                 selectedFurniture.transform.localScale = scale;
             }
         }
-
+        
         void HandleAxisScaling(Vector3 axis)
         {
             float scroll = Input.GetAxis("Mouse ScrollWheel");
             if (scroll != 0f)
             {
-
                 Vector3 oldScale = selectedFurniture.transform.localScale;
                 Vector3 newScale = oldScale + axis * scroll;
-
                 newScale = ClampScale(newScale);
 
                 selectedFurniture.transform.localScale = newScale;
 
-                /*if (axis == Vector3.up)
-                {
-                    float deltaY = newScale.y - oldScale.y;
-                    Vector3 pos = selectedFurniture.transform.position;
-                    pos.y += deltaY * 0.5f; 
-                    selectedFurniture.transform.position = pos;
-                }*/
-                
+                float delta = 0f;
                 if (axis == Vector3.up)
                 {
                     float oldBottom = selectedFurniture.GetComponent<Renderer>().bounds.min.y;
-
-                    selectedFurniture.transform.localScale = newScale;
-
                     float newBottom = selectedFurniture.GetComponent<Renderer>().bounds.min.y;
-
-                    float delta = oldBottom - newBottom;
-
-                    Vector3 pos = selectedFurniture.transform.position;
-                    pos.y += delta;
-                    selectedFurniture.transform.position = pos;
+                    delta = oldBottom - newBottom;
                 }
-                else
+
+                Vector3 proposedPosition = selectedFurniture.transform.position;
+                if (axis == Vector3.up)
                 {
-                    selectedFurniture.transform.localScale = newScale;
+                    proposedPosition.y += delta;
                 }
+
+                BoxCollider col = selectedFurniture.GetComponent<BoxCollider>();
+                Vector3 size = Vector3.Scale(col.size, selectedFurniture.transform.lossyScale);
+                Vector3 halfExtents = size * 0.5f;
+
+                Collider[] hits = Physics.OverlapBox(
+                    proposedPosition,
+                    halfExtents,
+                    selectedFurniture.transform.rotation
+                );
+
+                bool collides = false;
+                foreach (var h in hits)
+                {
+                    if (h.gameObject != selectedFurniture &&
+                        h.gameObject.layer != LayerMask.NameToLayer("Room") &&
+                        h.gameObject.layer != LayerMask.NameToLayer("Floor"))
+                    {
+                        collides = true;
+                        break;
+                    }
+                }
+
+                if (collides)
+                {
+                    selectedFurniture.transform.localScale = oldScale;
+                    return;
+                }
+
+                selectedFurniture.transform.position = proposedPosition;
             }
         }
+
 
         Vector3 ClampScale(Vector3 scale)
         {

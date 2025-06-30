@@ -2,10 +2,10 @@ using UnityEngine;
 
 public class GridManager : MonoBehaviour
 {
-    public int width = 10;  // Number of grid cells horizontally
-    public int height = 10; // Number of grid cells vertically
-    public float cellSize = 1f; // Size of each cell
-    public Material gridMaterial; // Assign in the inspector
+    public int width = 10;  
+    public int height = 10; 
+    public float cellSize = 1f; 
+    public Material gridMaterial; 
 
     void Start()
     {
@@ -34,7 +34,7 @@ public class GridManager : MonoBehaviour
         lr.positionCount = 2;
         lr.SetPositions(new Vector3[] { start, end });
 
-        lr.startWidth = 0.02f; // Thickness of grid lines
+        lr.startWidth = 0.02f;
         lr.endWidth = 0.02f;
         lr.material = gridMaterial;
         line.transform.SetParent(parent.transform);
