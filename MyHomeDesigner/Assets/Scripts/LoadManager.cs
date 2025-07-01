@@ -43,9 +43,12 @@ public class LoadManager : MonoBehaviour
                 GameObject instance = Instantiate(prefab, objData.position, objData.rotation);
                 instance.transform.localScale = objData.scale;
 
-                instance.AddComponent<SelectableFurniture>();
-                SelectableFurniture sf = instance.GetComponent<SelectableFurniture>();
-                sf.price = objData.price;
+                if (instance.layer != LayerMask.NameToLayer("Room"))
+                {
+                    instance.AddComponent<SelectableFurniture>();
+                    SelectableFurniture sf = instance.GetComponent<SelectableFurniture>();
+                    sf.price = objData.price;
+                }
 
                 if (prefab.name.ToLower().Contains("room"))
                 {

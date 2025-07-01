@@ -103,8 +103,7 @@
                 if (Physics.Raycast(ray, out RaycastHit hit, 100f, mask))
                 {
                     if (hit.collider.gameObject != selectedFurniture)
-                        return;
-
+                    return;
                     Vector3 currentPos = selectedFurniture.transform.position;
                     Vector3 targetPos = hit.point;
 

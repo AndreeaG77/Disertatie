@@ -133,6 +133,7 @@ public class InGameMenuManager : MonoBehaviour
     {
         menuPanel.SetActive(false);
         isMenuOpen = false;
+        UIBlocker.IsUIBlockingFurniture = false;
     }
 
     public void OnExitProjectClicked()

@@ -561,7 +561,19 @@ public class FurnitureDragHandler : MonoBehaviour, IBeginDragHandler, IDragHandl
             return null;
         }
 
-        return RoomManager.Instance.GetRoomByIndex(0).roomTransform.gameObject; ;
+        Collider[] overlapsRoom = Physics.OverlapBox(
+            worldPos,
+            previewInstance.GetComponent<Renderer>().bounds.extents,
+            Quaternion.identity,
+            LayerMask.GetMask("Room")
+        );
+
+        if (overlapsRoom.Length > 0)
+        {
+            return RoomManager.Instance.GetRoomByIndex(0).roomTransform.gameObject;
+        }
+
+        return null;
     }
 
     private GameObject GetWallUnderCursor(Vector3 pos)
